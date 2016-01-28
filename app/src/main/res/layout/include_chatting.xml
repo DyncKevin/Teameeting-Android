@@ -8,7 +8,6 @@
     <RelativeLayout
         android:id="@+id/rl_chat_topbar"
         style="@style/TopBar_Style"
-        android:layout_height="@dimen/height_top_bar"
         android:paddingLeft="10dp"
         android:background="@color/black_gray">
 
@@ -59,7 +58,7 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_above="@id/rl_chat_bottom"
         android:layout_below="@id/rl_chat_topbar"
-        android:background="#CF000000"
+        android:background="@color/chat_bg"
         android:paddingBottom="10dp"
         android:layout_width="match_parent"
         android:layout_height="match_parent">

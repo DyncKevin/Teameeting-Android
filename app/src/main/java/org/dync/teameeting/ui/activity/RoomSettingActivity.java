@@ -164,7 +164,7 @@ public class RoomSettingActivity extends BaseActivity implements View.OnClickLis
             Anims.ScaleAnim(ivNotifation, 0, 1, 10);
         }
 
-        mMeetingPrivateFlag = mMeetingEntity.getMeetusable() == 2 ? true : false;
+        mMeetingPrivateFlag = mMeetingEntity.getMeetenable() == 2 ? true : false;
         mSlideSwitchPrivate.setState(mMeetingPrivateFlag);
 
     }

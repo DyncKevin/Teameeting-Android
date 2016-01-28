@@ -22,6 +22,15 @@ public class MessageListEntity {
     private String userid;
     private long sendtime;
     private String message;
+    private String username;
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
     public void setId(int id) {
         this.id = id;

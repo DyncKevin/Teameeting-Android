@@ -82,4 +82,6 @@
     <string name="dialog_net_exception">网络异常</string>
     <string name="dialog_net_conn_failure">链接失败!</string>
     <string name="dialog_exit">退出</string>
+    <string name="toast_seeting_success">设置成功</string>
+    <string name="chat_output_name">我</string>
 </resources>

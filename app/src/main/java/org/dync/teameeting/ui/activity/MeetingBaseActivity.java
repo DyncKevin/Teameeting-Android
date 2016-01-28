@@ -29,6 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import de.greenrobot.event.EventBus;
+
 /**
  * @author ZLang <br/>
  *         create at 2015-11-30 下午2:48:42
@@ -62,21 +64,32 @@ public class MeetingBaseActivity extends Activity implements IChatMessageIntefac
 
     private void registerObserverClinet() {
         mChatMessageClinet = TeamMeetingApp.getmChatMessageClient();
-        mChatMessageClinet.registerObserver(new ChatMessageClient.ChatMessageObserver() {
-            @Override
-            public void OnReqSndMsg(final ReqSndMsgEntity reqSndMsg) {
-                if (Looper.myLooper() != Looper.getMainLooper()) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            onRequesageMsg(reqSndMsg);
-                        }
-                    });
-                }
-            }
-        });
+        mChatMessageClinet.registerObserver(chatMessageObserver);
     }
 
+    ChatMessageClient.ChatMessageObserver chatMessageObserver = new ChatMessageClient.ChatMessageObserver() {
+        @Override
+        public void OnReqSndMsg(final ReqSndMsgEntity reqSndMsg) {
+            if (Looper.myLooper() != Looper.getMainLooper()) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        onRequesageMsg(reqSndMsg);
+                    }
+                });
+            } else {
+                onRequesageMsg(reqSndMsg);
+            }
+        }
+
+    };
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mChatMessageClinet.unregisterObserver(chatMessageObserver);
+        EventBus.getDefault().unregister(this);
+    }
 
     public String getSign() {
         return TeamMeetingApp.getmSelfData().getAuthorization();
@@ -122,7 +135,6 @@ public class MeetingBaseActivity extends Activity implements IChatMessageIntefac
         });
         anim.setDuration(3000).start();
     }
-
 
 
     private void MoveDownView() {

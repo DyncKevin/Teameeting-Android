@@ -27,6 +27,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.nineoldandroids.view.ViewPropertyAnimator;
+
 import de.greenrobot.event.EventBus;
 
 import org.anyrtc.AnyrtcM2Mutlier;
@@ -703,7 +704,7 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
                 mAnyM2Mutlier = null;
             }
         }
-        EventBus.getDefault().unregister(this);
+
     }
 
 
@@ -841,7 +842,7 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
     public void onRequesageMsg(ReqSndMsgEntity requestMsg) {
         super.onRequesageMsg(requestMsg);
         if (mDebug) {
-            Log.e(TAG, "onRequesageMsg: 1");
+            Log.e(TAG, "onRequesageMsg: 1" + requestMsg);
         }
 
         int tags = requestMsg.getTags();
