@@ -54,8 +54,8 @@ public class StartFlashActivity extends BaseActivity {
     private ImageView mView;
     private Context context;
     private TMMsgSender mMsgSender;
-    //private final String mServer = "180.150.179.128";
-    private final String mServer = "192.168.7.39";
+    private final String mServer = "180.150.179.128";
+    //private final String mServer = "192.168.7.39";
 
     private final int mPort = 6630;
     private String mUserid;
@@ -235,7 +235,7 @@ public class StartFlashActivity extends BaseActivity {
         Intent intent;
         if (firstLogin) {
             intent = new Intent(StartFlashActivity.this, GuideActivity.class);
-            LocalUserInfo.getInstance(StartFlashActivity.this).setUserInfoBoolean("firstLogin", false);
+            LocalUserInfo.getInstance(StartFlashActivity.this).setUserInfoBoolean(LocalUserInfo.FIRST_LOGIN, false);
         } else {
             intent = new Intent(StartFlashActivity.this, MainActivity.class);
             intent.putExtra("urlMeetingId", mUrlMeetingId);
@@ -261,7 +261,6 @@ public class StartFlashActivity extends BaseActivity {
             // initNetWork();
         }
     }
-
 
 
     private final TagAliasCallback mAliasCallback = new TagAliasCallback() {
@@ -355,7 +354,6 @@ public class StartFlashActivity extends BaseActivity {
     }
 
 
-
     /**
      * For EventBus callback.
      */
@@ -400,15 +398,13 @@ public class StartFlashActivity extends BaseActivity {
                 break;
             case MSG_RESPONS_ESTR_NULl:
                 if (mDebug)
-                    Log.e(TAG, "MSG_NET_WORK_TYPE");
+                    Log.e(TAG, "MSG_RESPONS_ESTR_NULl");
                 mNetErrorSweetAlertDialog.show();
                 break;
             case MSG_MESSAGE_LOGIN_SUCCESS:
                 if (mDebug) {
                     Log.e(TAG, "MSG_MESSAGE_LOGIN_SUCCESS");
                 }
-
-
                 break;
             case MSG_MESSAGE_LOGIN_FAILED:
                 if (mDebug) {

@@ -91,4 +91,6 @@
     <color name="setting_line_color">#cccccc</color>
     <color name="pull_refresh_textview">#000000</color>
 
+    <color name="chat_bg">#ab000000</color>
+
 </resources>

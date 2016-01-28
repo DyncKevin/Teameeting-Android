@@ -136,7 +136,7 @@ public class SwipeListAdapter extends CommonAdapter<MeetingListEntity> {
             mHolder.mMoreSetting.setVisibility(View.VISIBLE);
         }
 
-        if (meetingListEntity.getMeetusable() == HttpApiTpye.RoomEnablePrivate) {
+        if (meetingListEntity.getMeetenable() == HttpApiTpye.RoomEnablePrivate) {
             mHolder.mRoomName.setTextColor(mResources.getColor(R.color.orange));
             if (meetingListEntity.getOwner() != 1) {
                 mHolder.mIvPrivate.setVisibility(View.INVISIBLE);
@@ -148,7 +148,7 @@ public class SwipeListAdapter extends CommonAdapter<MeetingListEntity> {
 
         if (meetingListEntity.getOwner() == 1) {
             mHolder.mRoomName.setTextColor(mResources.getColor(R.color.orange));
-            if (meetingListEntity.getMeetusable() == HttpApiTpye.RoomEnablePrivate) {
+            if (meetingListEntity.getMeetenable() == HttpApiTpye.RoomEnablePrivate) {
                 mHolder.mIvPrivate.setVisibility(View.VISIBLE);
             }
         } else {

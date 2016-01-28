@@ -1,21 +1,28 @@
 package org.dync.teameeting.ui.activity;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Rect;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Message;
+import android.text.Editable;
+import android.text.Selection;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewTreeObserver;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
+import android.view.Window;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -44,10 +51,14 @@ import org.dync.teameeting.ui.PushSetActivity;
 import org.dync.teameeting.ui.adapter.SwipeListAdapter;
 import org.dync.teameeting.ui.adapter.SwipeListAdapter.SwipeListOnClick;
 import org.dync.teameeting.ui.helper.DialogHelper;
+import org.dync.teameeting.utils.LocalUserInfo;
 import org.dync.teameeting.utils.ScreenUtils;
+import org.dync.teameeting.widgets.ConfirmDialog;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.security.auth.login.LoginException;
 
@@ -83,8 +94,6 @@ public class MainActivity extends BaseActivity {
     private boolean mSoftInputFlag = false;
     private int mDy;
     private int mPosition;
-    private String mShareUrl = "empty Url";
-    private final String mPass = getSign();
     private String mUserId = TeamMeetingApp.getTeamMeetingApp().getDevId();
     private TMMsgSender mMsgSender;
 
@@ -127,7 +136,7 @@ public class MainActivity extends BaseActivity {
         }
     };
     private SweetAlertDialog mWarningCancel;
-    private SweetAlertDialog progressDiloag;
+    private boolean isSetUserName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -141,20 +150,16 @@ public class MainActivity extends BaseActivity {
         if (mDebug) {
             Log.e(TAG, "onCreate: " + TeamMeetingApp.getmSelfData().getMeetingLists().toString());
         }
+
     }
 
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-        //  getListNetWork();
-    }
 
     private void initdata() {
 
         mWarningCancel = DialogHelper.createWarningCancel(mContext);
         upDataMeetingList();
         mMsgSender = TeamMeetingApp.getmMsgSender();
-
+        isSetUserName = LocalUserInfo.getInstance(mContext).getUserInfoBoolean(LocalUserInfo.SET_USER_NAME);
         mUrlMeetingId = getIntent().getStringExtra("urlMeetingId");
 
         if (mUrlMeetingId != null) {
@@ -173,30 +178,6 @@ public class MainActivity extends BaseActivity {
             }
         }
 
-
-    }
-
-    private void meetingPositiotrue(final int position) {
-
-        if (mDebug) {
-            Log.e(TAG, "initdata:+position " + position);
-        }
-        mWarningCancel.setCancelClickListener(new OnSweetClickListener() {
-            @Override
-            public void onClick(SweetAlertDialog sweetAlertDialog) {
-                sweetAlertDialog.cancel();
-                sweetAlertDialog.dismiss();
-            }
-        }).setConfirmClickListener(new OnSweetClickListener() {
-            @Override
-            public void onClick(SweetAlertDialog sweetAlertDialog) {
-
-                sweetAlertDialog.cancel();
-                sweetAlertDialog.dismiss();
-                enterMeetingActivity(position);
-            }
-        });
-        mWarningCancel.show();
 
     }
 
@@ -224,6 +205,57 @@ public class MainActivity extends BaseActivity {
         mAdapter = new SwipeListAdapter(mContext, mRoomMeetingList, mSwipeListOnClick);
         mListView.setAdapter(mAdapter);
 
+        addRlMainRlMain();
+
+        if (!isSetUserName) {
+            showupdateNicknameDialog();
+        }
+    }
+
+    private void showupdateNicknameDialog() {
+        final Dialog dialog = new Dialog(this);
+        dialog.show();
+        Window window = dialog.getWindow();
+        window.setBackgroundDrawable(new ColorDrawable(0));
+        dialog.setCancelable(false);
+        dialog.setContentView(R.layout.dialog_ecaluation);
+
+        final EditText editText = (EditText) window.findViewById(R.id.et_user_name);
+        final String uname = TeamMeetingApp.getmSelfData().getInformation().getUname();
+        editText.setText(uname);
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            public void run() {
+                InputMethodManager inputManager = (InputMethodManager) editText.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                inputManager.showSoftInput(editText, 0);
+            }
+
+        }, 500);
+        Editable etext = editText.getText();
+        int position = etext.length();
+        Selection.setSelection(etext, position);
+
+        Button button = (Button) window.findViewById(R.id.confirm_button);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String s = editText.getText().toString();
+                if (!s.equals("")) {
+                    dialog.cancel();
+                    if (s.equals(uname)) {
+                        LocalUserInfo.getInstance(mContext).setUserInfoBoolean(LocalUserInfo.SET_USER_NAME, true);
+                        return;
+                    }
+                    mNetWork.updateNickname(getSign(), s.trim());
+                    return;
+                }
+                Toast.makeText(mContext, "不能为空", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+    }
+
+    private void addRlMainRlMain() {
         mRlMain.getViewTreeObserver().addOnGlobalLayoutListener(
                 new OnGlobalLayoutListener() {
                     @Override
@@ -253,6 +285,39 @@ public class MainActivity extends BaseActivity {
                     }
                 });
     }
+
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        //  getListNetWork();
+    }
+
+
+    private void meetingPositiotrue(final int position) {
+
+        if (mDebug) {
+            Log.e(TAG, "initdata:+position " + position);
+        }
+        mWarningCancel.setCancelClickListener(new OnSweetClickListener() {
+            @Override
+            public void onClick(SweetAlertDialog sweetAlertDialog) {
+                sweetAlertDialog.cancel();
+                sweetAlertDialog.dismiss();
+            }
+        }).setConfirmClickListener(new OnSweetClickListener() {
+            @Override
+            public void onClick(SweetAlertDialog sweetAlertDialog) {
+
+                sweetAlertDialog.cancel();
+                sweetAlertDialog.dismiss();
+                enterMeetingActivity(position);
+            }
+        });
+        mWarningCancel.show();
+
+    }
+
 
     /**
      * isKeyboardShown
@@ -694,14 +759,12 @@ public class MainActivity extends BaseActivity {
     }
 
 
-
-
     private void netCatchGreatRoom() {
         for (int i = 0; i < mRoomMeetingList.size(); i++) {
             MeetingListEntity meetingListEntity = mRoomMeetingList.get(i);
             if (!meetingListEntity.isApplyTyep()) {
                 mNetWork.applyRoom(getSign(), meetingListEntity.getMeetname(), meetingListEntity.getMeettype() + "",
-                        meetingListEntity.getMeetdesc(), meetingListEntity.getMeetusable() + "",
+                        meetingListEntity.getMeetdesc(), meetingListEntity.getMeetenable() + "",
                         meetingListEntity.getPushable() + "", 0, i);
             }
             mAdapter.notifyDataSetChanged();
@@ -743,7 +806,7 @@ public class MainActivity extends BaseActivity {
 
     private void getMeetingInfoSuccess(Message msg) {
         MeetingListEntity meetingListEntity = TeamMeetingApp.getmSelfData().getMeetingListEntity();
-        int usable = meetingListEntity.getMeetusable();
+        int usable = meetingListEntity.getMeetenable();
         mUrlMeetingName = meetingListEntity.getMeetname();
         String meetinId = meetingListEntity.getMeetingid();
         String joinType;
@@ -951,6 +1014,10 @@ public class MainActivity extends BaseActivity {
                     Log.e(TAG, "onEventMainThread: pos" + pos);
                 meetingPositiotrue(pos);
                 //enterMeetingActivity(pos);
+
+            case MSG_UPDATE_NICKNAME_SUCCESS:
+                LocalUserInfo.getInstance(mContext).setUserInfoBoolean(LocalUserInfo.SET_USER_NAME, true);
+                Toast.makeText(mContext, R.string.toast_seeting_success, Toast.LENGTH_SHORT).show();
             default:
                 break;
         }

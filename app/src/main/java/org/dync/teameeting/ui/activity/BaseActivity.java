@@ -48,23 +48,25 @@ public class BaseActivity extends Activity implements IChatMessageInteface {
 
     private void registerObserverClinet() {
         mChatMessageClinet = TeamMeetingApp.getmChatMessageClient();
-        mChatMessageClinet.registerObserver(new ChatMessageClient.ChatMessageObserver() {
-            @Override
-            public void OnReqSndMsg(final ReqSndMsgEntity reqSndMsg) {
-                if (Looper.myLooper() != Looper.getMainLooper()) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            onRequesageMsg(reqSndMsg);
-                        }
-                    });
-                } else {
-                    onRequesageMsg(reqSndMsg);
-                }
-            }
-
-        });
+        mChatMessageClinet.registerObserver(chatMessageObserver);
     }
+
+    ChatMessageClient.ChatMessageObserver chatMessageObserver = new ChatMessageClient.ChatMessageObserver() {
+        @Override
+        public void OnReqSndMsg(final ReqSndMsgEntity reqSndMsg) {
+            if (Looper.myLooper() != Looper.getMainLooper()) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        onRequesageMsg(reqSndMsg);
+                    }
+                });
+            } else {
+                onRequesageMsg(reqSndMsg);
+            }
+        }
+
+    };
 
     public void initNetWork() {
         String userid = TeamMeetingApp.getTeamMeetingApp().getDevId();
@@ -108,8 +110,10 @@ public class BaseActivity extends Activity implements IChatMessageInteface {
         if (mDebug) {
             Log.i(TAG, "onDestroy: ");
         }
+        mChatMessageClinet.unregisterObserver(chatMessageObserver);
         EventBus.getDefault().unregister(this);
     }
+
 
     public void onEventMainThread(Message msg) {
 
@@ -138,6 +142,7 @@ public class BaseActivity extends Activity implements IChatMessageInteface {
                     pDialog.cancel();
                     pDialog.dismiss();
                     this.cancel();
+                    return;
                 }
                 switch (i) {
                     case 0:
@@ -195,6 +200,10 @@ public class BaseActivity extends Activity implements IChatMessageInteface {
                             .showCancelButton(true)
                             .show();
 
+                } else {
+                    pDialog.cancel();
+                    pDialog.dismiss();
+                    return;
                 }
 
             }

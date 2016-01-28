@@ -4,7 +4,7 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:paddingLeft="20dp"
-    android:paddingTop="20dp" >
+    android:paddingTop="@dimen/chat_padding_top">
 
     <LinearLayout
         android:id="@+id/ll_chat_layout"
@@ -13,7 +13,7 @@
         android:layout_weight="3"
         android:background="@color/white"
         android:orientation="vertical"
-        android:padding="15dp" >
+        android:padding="15dp">
 
         <TextView
             android:id="@+id/tv_chat_content"
@@ -28,7 +28,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="15dp"
-            android:orientation="horizontal" >
+            android:orientation="horizontal">
 
             <TextView
                 android:id="@+id/tv_send_name"

@@ -54,7 +54,7 @@
             android:textSize="18sp"/>
     </RelativeLayout>
 
-    <android.support.v4.widget.SwipeRefreshLayout
+<!--    <android.support.v4.widget.SwipeRefreshLayout
         android:id="@+id/swipe_container"
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_above="@id/rl_chat_bottom"
@@ -73,5 +73,26 @@
             android:listSelector="@color/transparent"
             android:scrollbarStyle="outsideOverlay">
         </ListView>
-    </android.support.v4.widget.SwipeRefreshLayout>
+    </android.support.v4.widget.SwipeRefreshLayout>-->
+    <LinearLayout
+        android:layout_above="@id/rl_chat_bottom"
+        android:layout_below="@id/rl_chat_topbar"
+        android:background="#66000000"
+        android:paddingBottom="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <org.dync.teameeting.widgets.ReFlashListView
+            android:id="@+id/listView_chat"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:divider="@null"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            android:listSelector="@color/transparent"
+            android:scrollbarStyle="outsideOverlay">
+        </org.dync.teameeting.widgets.ReFlashListView>
+
+   </LinearLayout>
+
 </RelativeLayout>

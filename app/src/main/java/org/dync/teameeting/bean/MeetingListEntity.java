@@ -24,7 +24,16 @@ public class MeetingListEntity implements Serializable {
     private String userid;
     private String meetname;
     private int meettype;
-    private int meetusable;
+
+    public int getMeetenable() {
+        return meetenable;
+    }
+
+    public void setMeetenable(int meetenable) {
+        this.meetenable = meetenable;
+    }
+
+    private int meetenable;
     private int memnumber;
     private int owner;
     private int pushable;
@@ -94,10 +103,6 @@ public class MeetingListEntity implements Serializable {
         this.meettype = meettype;
     }
 
-    public void setMeetusable(int meetusable) {
-        this.meetusable = meetusable;
-    }
-
     public void setMemnumber(int memnumber) {
         this.memnumber = memnumber;
     }
@@ -154,9 +159,6 @@ public class MeetingListEntity implements Serializable {
         return meettype;
     }
 
-    public int getMeetusable() {
-        return meetusable;
-    }
 
     public int getMemnumber() {
         return memnumber;
@@ -198,7 +200,7 @@ public class MeetingListEntity implements Serializable {
                 ", userid='" + userid + '\'' +
                 ", meetname='" + meetname + '\'' +
                 ", meettype=" + meettype +
-                ", meetusable=" + meetusable +
+                ", meetusable=" + meetenable +
                 ", memnumber=" + memnumber +
                 ", owner=" + owner +
                 ", pushable=" + pushable +

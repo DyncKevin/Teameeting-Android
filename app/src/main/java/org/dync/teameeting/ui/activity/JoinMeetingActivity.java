@@ -199,7 +199,7 @@ public class JoinMeetingActivity extends BaseActivity implements View.OnClickLis
 
     private void getMeetingInfoSuccess(Message msg) {
         MeetingListEntity meetingListEntity = TeamMeetingApp.getmSelfData().getMeetingListEntity();
-        int usable = meetingListEntity.getMeetusable();
+        int usable = meetingListEntity.getMeetenable();
         mMeetingName = meetingListEntity.getMeetname();
         switch (usable) {
             case 0://no
