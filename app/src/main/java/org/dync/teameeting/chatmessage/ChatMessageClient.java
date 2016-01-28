@@ -58,6 +58,7 @@ public class ChatMessageClient implements JMClientHelper {
      */
     public synchronized void notifyRequestMessage(ReqSndMsgEntity reqSndMsg) {
         for (ChatMessageObserver observer : mObServers) {
+            Log.e(TAG, "notifyRequestMessage: "+1 );
             observer.OnReqSndMsg(reqSndMsg);
         }
     }

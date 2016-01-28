@@ -62,15 +62,6 @@ public class JoinMeetingActivity extends BaseActivity implements View.OnClickLis
         mEtMeetingId.setFocusableInTouchMode(true);
         mEtMeetingId.requestFocus();
 
-        Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
-            public void run() {
-                InputMethodManager inputManager =
-                        (InputMethodManager) mEtMeetingId.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-                inputManager.showSoftInput(mEtMeetingId, 0);
-            }
-
-        }, 998);
 
     }
 
@@ -199,7 +190,7 @@ public class JoinMeetingActivity extends BaseActivity implements View.OnClickLis
 
     private void getMeetingInfoSuccess(Message msg) {
         MeetingListEntity meetingListEntity = TeamMeetingApp.getmSelfData().getMeetingListEntity();
-        int usable = meetingListEntity.getMeetusable();
+        int usable = meetingListEntity.getMeetenable();
         mMeetingName = meetingListEntity.getMeetname();
         switch (usable) {
             case 0://no

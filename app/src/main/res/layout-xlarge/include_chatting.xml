@@ -4,15 +4,14 @@
     android:layout_height="match_parent"
 
     android:animateLayoutChanges="true"
-    android:orientation="vertical" >
+    android:orientation="vertical">
 
     <RelativeLayout
         android:id="@+id/rl_chat_topbar"
         style="@style/TopBar_Style"
         android:layout_height="@dimen/height_top_bar"
         android:background="@color/black_gray"
-        android:visibility="gone"
-        >
+        android:visibility="gone">
 
         <TextView
             style="@style/Title_Txt"
@@ -28,8 +27,7 @@
             android:layout_centerVertical="true"
             android:layout_marginLeft="16dp"
             android:src="@drawable/close"
-            android:visibility="gone"
-            />
+            android:visibility="gone" />
     </RelativeLayout>
 
     <RelativeLayout
@@ -37,7 +35,7 @@
         android:layout_width="fill_parent"
         android:layout_height="@dimen/height_top_bar"
         android:layout_alignParentBottom="true"
-        android:background="@color/white" >
+        android:background="@color/white">
 
         <Button
             android:id="@+id/btn_chat_send"
@@ -60,15 +58,17 @@
             android:singleLine="true"
             android:textSize="18sp" />
     </RelativeLayout>
+
     <android.support.v4.widget.SwipeRefreshLayout
-        android:id="@+id/swipe_container"
         xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/swipe_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_above="@id/rl_chat_bottom"
         android:layout_below="@id/rl_chat_topbar"
-        android:background="#CF000000"
-        android:paddingBottom="10dp"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:background="@color/chat_bg"
+        android:paddingBottom="10dp">
+
         <ListView
             android:id="@+id/listView_chat"
             android:layout_width="fill_parent"
@@ -77,14 +77,13 @@
             android:focusable="false"
             android:focusableInTouchMode="false"
             android:listSelector="@color/transparent"
-            android:scrollbarStyle="outsideOverlay">
-        </ListView>
+            android:scrollbarStyle="outsideOverlay"></ListView>
     </android.support.v4.widget.SwipeRefreshLayout>
+
     <TextView
         android:id="@+id/text_notuse"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:focusable="true"
-        android:focusableInTouchMode="true"
-        />
+        android:focusableInTouchMode="true" />
 </RelativeLayout>
