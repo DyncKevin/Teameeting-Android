@@ -804,8 +804,8 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
 
     @Override
     public void OnRtcPublishFailed(int i, String s) {
-        if (mDebug) {
-            Log.e(TAG, "OnRtcPublishOK: ");
+        if(mDebug){
+            Log.e(TAG, "OnRtcPublishFailed: " );
         }
     }
 
