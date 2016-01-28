@@ -48,23 +48,7 @@ public class VideoViews implements View.OnTouchListener{
     private static Activity mContent;
     private static int    mScreenWidth  ;
     private static int    mScreenHeight ;
-    private  boolean  mLocalViewFlag;
-    private Handler mUiHandler = new Handler() {
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case UPDATE_UI:
 
-                    mLocalRender.showVoiceView();
-
-                    break;
-
-                default:
-                    break;
-            }
-
-        }
-
-    };
     public interface VideoViewEvent {
         void OnScreenSwitch(String strBeforeFullScrnId, String strNowFullScrnId);
     }
@@ -246,6 +230,8 @@ public class VideoViews implements View.OnTouchListener{
             mLocalRender.mCallback = null;
             mLocalRender.mRenderer = null;
             mLocalRender.mVideoTrack = null;
+            mParentLayout.removeView(mLocalRender.mVoiceView);
+            mParentLayout.removeView(mLocalRender.mVideoView);
         }
     }
 
@@ -289,6 +275,7 @@ public class VideoViews implements View.OnTouchListener{
                 remoteRender.mRenderer = null;
                 remoteRender.mVideoTrack = null;
                 mParentLayout.removeView(remoteRender.mVoiceView);
+                mParentLayout.removeView(remoteRender.mVideoView);
             }
             mRemoteRenders.remove(peerId);
             updateVideoView();

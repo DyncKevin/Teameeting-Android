@@ -822,6 +822,9 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
     protected void onDestroy() {
         // TODO Auto-generated method stub
         super.onDestroy();
+
+        mVideoView.CloseLocalRender();
+
         {// Close all
             if (mAnyM2Mutlier != null) {
                 mAnyM2Mutlier.Destroy();
