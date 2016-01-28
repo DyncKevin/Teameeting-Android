@@ -38,7 +38,7 @@
     <string name="title_activity_push_set">PushSetActivity</string>
     <string name="title_activity_test">TestActivity</string>
     <string name="room_emty_tite">创建你的第一个房间</string>
-    <string name="room_empty_content_str">创建一个带视屏的房间，把房间分享给您的同事或者好友，无论你在哪里，他们都能看到你</string>
+    <string name="room_empty_content_str">创建一个带视频的房间，把房间分享给您的同事或者好友，无论你在哪里，他们都能看到你</string>
     <string name="str_join_room_wait">正在进入会议请等待</string>
     <string name="str_create">"创建  :  "</string>
     <string name="str_join">"加入  :  "</string>
@@ -46,7 +46,7 @@
     <!-- 进入会议界面  -->
 
     <string name="str_join_meeting">加入会议</string>
-    <string name="str_edittext_meeting_id_hint">请输入会议 ID</string>
+    <string name="str_edittext_meeting_id_hint">请输入12位会议 ID</string>
     <string name="str_meeting_id_error">会议 ID 格式错误</string>
     <string name="str_meeting_deleted">会议已经无效</string>
     <string name="str_meeting_privated">私密会议不能加入</string>
@@ -67,6 +67,9 @@
     <string name="newadays">今天</string>
     <string name="work">星期</string>
 
+    <string name="str_refresh_pull">下拉刷新</string>
+    <string name="str_refresh_loading">正在加载数据</string>
+    <string name="str_refresh_relese">松开可以加载数据</string>
     <!--dilaog -->
 
     <string name="dialog_copy_success">复制成功</string>
