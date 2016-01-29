@@ -1,16 +1,12 @@
 package org.dync.teameeting.ui.activity;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Message;
 import android.text.Editable;
@@ -20,7 +16,6 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.ViewTreeObserver;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.view.Window;
 import android.view.inputmethod.InputMethodManager;
@@ -47,20 +42,16 @@ import org.dync.teameeting.structs.ExtraType;
 import org.dync.teameeting.structs.Intent_KEY;
 import org.dync.teameeting.structs.JoinActType;
 import org.dync.teameeting.structs.NetType;
-import org.dync.teameeting.ui.PushSetActivity;
 import org.dync.teameeting.ui.adapter.SwipeListAdapter;
 import org.dync.teameeting.ui.adapter.SwipeListAdapter.SwipeListOnClick;
 import org.dync.teameeting.ui.helper.DialogHelper;
 import org.dync.teameeting.utils.LocalUserInfo;
 import org.dync.teameeting.utils.ScreenUtils;
-import org.dync.teameeting.widgets.ConfirmDialog;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-
-import javax.security.auth.login.LoginException;
 
 import cn.pedant.SweetAlert.SweetAlertDialog;
 import cn.pedant.SweetAlert.SweetAlertDialog.OnSweetClickListener;
@@ -241,12 +232,14 @@ public class MainActivity extends BaseActivity {
             public void onClick(View view) {
                 String s = editText.getText().toString();
                 if (!s.equals("")) {
-                    dialog.cancel();
+
                     if (s.equals(uname)) {
                         LocalUserInfo.getInstance(mContext).setUserInfoBoolean(LocalUserInfo.SET_USER_NAME, true);
                         return;
                     }
                     mNetWork.updateNickname(getSign(), s.trim());
+                    mMsgSender.TMSetNickName(s.trim());
+                    dialog.cancel();
                     return;
                 }
                 Toast.makeText(mContext, "不能为空", Toast.LENGTH_SHORT).show();

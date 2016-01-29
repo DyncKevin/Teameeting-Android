@@ -120,7 +120,6 @@ public class VideoViews implements View.OnTouchListener{
             mParentLayout.addView(mVideoView,layoutParamsVideo);
             mVideoView.setVisibility(View.GONE);
 
-            updateView();
         }
 
         private void updateView(){
