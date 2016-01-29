@@ -117,6 +117,9 @@
             android:background="@drawable/popup_copy_text"
             android:gravity="center_vertical|center_horizontal"
             android:text="cnblogs.com/sunzn"
+            android:singleLine="true"
+            android:padding="5dp"
+            android:ellipsize="middle"
             android:textSize="@dimen/larger_txt_size" />
 
         <Button

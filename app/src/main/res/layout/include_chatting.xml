@@ -22,7 +22,7 @@
             style="@style/Btn_left"
             android:layout_centerVertical="true"
             android:src="@drawable/close" />
-    </RelativeLayout>·
+    </RelativeLayout>
 
     <RelativeLayout
         android:id="@+id/rl_chat_bottom"
@@ -89,7 +89,8 @@
             android:focusable="false"
             android:focusableInTouchMode="false"
             android:listSelector="@color/transparent"
-            android:scrollbarStyle="outsideOverlay"></org.dync.teameeting.widgets.ReFlashListView>
+            android:scrollbarStyle="outsideOverlay">
+	    </org.dync.teameeting.widgets.ReFlashListView>
 
     </LinearLayout>
 
