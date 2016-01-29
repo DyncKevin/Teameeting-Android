@@ -194,8 +194,17 @@ public class StartFlashActivity extends BaseActivity {
      */
     private void chatMessageInint() {
 
-        mMsgSender = new TMMsgSender(this, TeamMeetingApp.getmChatMessageClient());
+        mNname = TeamMeetingApp.getmSelfData().getInformation().getUname();
+        if(mDebug){
+            Log.e(TAG, "chatMessageInint: "+mMsgSender);
+        }
+        if(mMsgSender==null)
+             mMsgSender = new TMMsgSender(this, TeamMeetingApp.getmChatMessageClient());
         TeamMeetingApp.getTeamMeetingApp().setmMsgSender(mMsgSender);
+        if(mNname==null)
+            mNname= "null name";
+        if(mDebug)
+        Log.e(TAG, "chatMessageInint: mNname "+mNname );
         int msg = mMsgSender.TMInit(mUserid, mSign, mNname, mServer, mPort);
         if (msg >= 0) {
             if (mDebug)
