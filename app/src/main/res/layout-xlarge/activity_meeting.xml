@@ -88,7 +88,7 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_marginLeft="@dimen/chact_margin_left_margin"
-        android:visibility="visible" >
+         >
 
         <include layout="@layout/include_chatting" />
     </RelativeLayout>
