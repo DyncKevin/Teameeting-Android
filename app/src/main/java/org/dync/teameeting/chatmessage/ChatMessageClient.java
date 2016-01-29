@@ -6,7 +6,6 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 import com.orhanobut.logger.Logger;
-import com.ypy.eventbus.EventBus;
 
 import org.dync.teameeting.TeamMeetingApp;
 import org.dync.teameeting.bean.ReqSndMsgEntity;
@@ -15,10 +14,9 @@ import org.dync.teameeting.sdkmsgclientandroid.jni.JMClientHelper;
 import org.dync.teameeting.sdkmsgclientandroid.jni.JMClientType;
 import org.dync.teameeting.structs.EventType;
 
-import java.security.PublicKey;
 import java.util.ArrayList;
 
-import javax.security.auth.login.LoginException;
+import de.greenrobot.event.EventBus;
 
 /**
  * Created by zhangqilu on 2016/1/8.
@@ -60,6 +58,7 @@ public class ChatMessageClient implements JMClientHelper {
      */
     public synchronized void notifyRequestMessage(ReqSndMsgEntity reqSndMsg) {
         for (ChatMessageObserver observer : mObServers) {
+            Log.e(TAG, "notifyRequestMessage: "+1 );
             observer.OnReqSndMsg(reqSndMsg);
         }
     }
@@ -135,7 +134,7 @@ public class ChatMessageClient implements JMClientHelper {
     public void OnMsgServerConnectionFailure() {
 
         if (mDebug) {
-            Log.e(TAG, "OnMsgServerConnectionFailure: ");
+            Log.i(TAG, "OnMsgServerConnectionFailure: ");
         }
 
     }
@@ -144,7 +143,7 @@ public class ChatMessageClient implements JMClientHelper {
     public void OnMsgServerState(int connStatus) {
 
         if (mDebug) {
-            Log.e(TAG, "OnMsgServerState: " + connStatus);
+            Log.i(TAG, "OnMsgServerState: " + connStatus);
         }
     }
 }

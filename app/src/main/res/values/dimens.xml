@@ -44,7 +44,7 @@
     <dimen name="roomControls">270dp</dimen>
     <dimen name="top_bar_text_size">20sp</dimen>
     <dimen name="btn_send_width">100dp</dimen>
-
+    <dimen name="chat_padding_top">30dp</dimen>
 
 
 </resources>

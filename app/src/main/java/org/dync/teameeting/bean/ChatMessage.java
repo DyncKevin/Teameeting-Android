@@ -23,10 +23,19 @@ public class ChatMessage
      * Date format
      */
     private String dateStr;
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
     /**
      * who send
      */
-    private String name;
+    private String username;
 
     public enum Type
     {
@@ -38,7 +47,7 @@ public class ChatMessage
         super();
         this.type = type;
         this.content = msg;
-        this.name = name;
+        this.username = name;
         this.dateStr = dateStr;
     }
 
@@ -58,15 +67,6 @@ public class ChatMessage
     }
 
 
-    public String getName()
-    {
-        return name;
-    }
-
-    public void setName(String name)
-    {
-        this.name = name;
-    }
 
     public Type getType()
     {

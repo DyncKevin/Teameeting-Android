@@ -1,18 +1,28 @@
 package org.dync.teameeting.ui.activity;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.graphics.Rect;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Message;
+import android.text.Editable;
+import android.text.Selection;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewTreeObserver;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
+import android.view.Window;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -37,13 +47,20 @@ import org.dync.teameeting.structs.ExtraType;
 import org.dync.teameeting.structs.Intent_KEY;
 import org.dync.teameeting.structs.JoinActType;
 import org.dync.teameeting.structs.NetType;
+import org.dync.teameeting.ui.PushSetActivity;
 import org.dync.teameeting.ui.adapter.SwipeListAdapter;
 import org.dync.teameeting.ui.adapter.SwipeListAdapter.SwipeListOnClick;
 import org.dync.teameeting.ui.helper.DialogHelper;
+import org.dync.teameeting.utils.LocalUserInfo;
 import org.dync.teameeting.utils.ScreenUtils;
+import org.dync.teameeting.widgets.ConfirmDialog;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import javax.security.auth.login.LoginException;
 
 import cn.pedant.SweetAlert.SweetAlertDialog;
 import cn.pedant.SweetAlert.SweetAlertDialog.OnSweetClickListener;
@@ -77,8 +94,6 @@ public class MainActivity extends BaseActivity {
     private boolean mSoftInputFlag = false;
     private int mDy;
     private int mPosition;
-    private String mShareUrl = "empty Url";
-    private final String mPass = getSign();
     private String mUserId = TeamMeetingApp.getTeamMeetingApp().getDevId();
     private TMMsgSender mMsgSender;
 
@@ -120,6 +135,8 @@ public class MainActivity extends BaseActivity {
             }
         }
     };
+    private SweetAlertDialog mWarningCancel;
+    private boolean isSetUserName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -133,26 +150,32 @@ public class MainActivity extends BaseActivity {
         if (mDebug) {
             Log.e(TAG, "onCreate: " + TeamMeetingApp.getmSelfData().getMeetingLists().toString());
         }
+
     }
 
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-        //  getListNetWork();
-    }
 
     private void initdata() {
+
+        mWarningCancel = DialogHelper.createWarningCancel(mContext);
         upDataMeetingList();
         mMsgSender = TeamMeetingApp.getmMsgSender();
-
+        isSetUserName = LocalUserInfo.getInstance(mContext).getUserInfoBoolean(LocalUserInfo.SET_USER_NAME);
         mUrlMeetingId = getIntent().getStringExtra("urlMeetingId");
+
         if (mUrlMeetingId != null) {
             mUrlInsertMeegting = true;
             if (mDebug) {
                 Log.e(TAG, "initdata: mUrlMeetingId " + mUrlMeetingId);
             }
-            Toast.makeText(mContext, R.string.str_join_room_wait, Toast.LENGTH_LONG);
-            mNetWork.getMeetingInfo(mUrlMeetingId, JoinActType.JOIN_LINK_JOIN_ACTIVITY);
+            int position = TeamMeetingApp.getmSelfData().getMeetingIdPosition(mUrlMeetingId);
+            if (position >= 0) {
+
+                meetingPositiotrue(position);
+
+            } else {
+                Toast.makeText(mContext, R.string.str_join_room_wait, Toast.LENGTH_LONG);
+                mNetWork.getMeetingInfo(mUrlMeetingId, JoinActType.JOIN_LINK_JOIN_ACTIVITY);
+            }
         }
 
 
@@ -182,6 +205,57 @@ public class MainActivity extends BaseActivity {
         mAdapter = new SwipeListAdapter(mContext, mRoomMeetingList, mSwipeListOnClick);
         mListView.setAdapter(mAdapter);
 
+        addRlMainRlMain();
+
+        if (!isSetUserName) {
+            showupdateNicknameDialog();
+        }
+    }
+
+    private void showupdateNicknameDialog() {
+        final Dialog dialog = new Dialog(this);
+        dialog.show();
+        Window window = dialog.getWindow();
+        window.setBackgroundDrawable(new ColorDrawable(0));
+        dialog.setCancelable(false);
+        dialog.setContentView(R.layout.dialog_ecaluation);
+
+        final EditText editText = (EditText) window.findViewById(R.id.et_user_name);
+        final String uname = TeamMeetingApp.getmSelfData().getInformation().getUname();
+        editText.setText(uname);
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            public void run() {
+                InputMethodManager inputManager = (InputMethodManager) editText.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                inputManager.showSoftInput(editText, 0);
+            }
+
+        }, 500);
+        Editable etext = editText.getText();
+        int position = etext.length();
+        Selection.setSelection(etext, position);
+
+        Button button = (Button) window.findViewById(R.id.confirm_button);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String s = editText.getText().toString();
+                if (!s.equals("")) {
+                    dialog.cancel();
+                    if (s.equals(uname)) {
+                        LocalUserInfo.getInstance(mContext).setUserInfoBoolean(LocalUserInfo.SET_USER_NAME, true);
+                        return;
+                    }
+                    mNetWork.updateNickname(getSign(), s.trim());
+                    return;
+                }
+                Toast.makeText(mContext, "不能为空", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+    }
+
+    private void addRlMainRlMain() {
         mRlMain.getViewTreeObserver().addOnGlobalLayoutListener(
                 new OnGlobalLayoutListener() {
                     @Override
@@ -211,6 +285,39 @@ public class MainActivity extends BaseActivity {
                     }
                 });
     }
+
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        //  getListNetWork();
+    }
+
+
+    private void meetingPositiotrue(final int position) {
+
+        if (mDebug) {
+            Log.e(TAG, "initdata:+position " + position);
+        }
+        mWarningCancel.setCancelClickListener(new OnSweetClickListener() {
+            @Override
+            public void onClick(SweetAlertDialog sweetAlertDialog) {
+                sweetAlertDialog.cancel();
+                sweetAlertDialog.dismiss();
+            }
+        }).setConfirmClickListener(new OnSweetClickListener() {
+            @Override
+            public void onClick(SweetAlertDialog sweetAlertDialog) {
+
+                sweetAlertDialog.cancel();
+                sweetAlertDialog.dismiss();
+                enterMeetingActivity(position);
+            }
+        });
+        mWarningCancel.show();
+
+    }
+
 
     /**
      * isKeyboardShown
@@ -347,6 +454,8 @@ public class MainActivity extends BaseActivity {
                     break;
                 case R.id.ibtn_join_meeting:
                     Intent intent = new Intent(mContext, JoinMeetingActivity.class);
+                    //Intent intent = new Intent(mContext, PushSetActivity.class);
+
                     startActivity(intent);
                     break;
 
@@ -378,10 +487,9 @@ public class MainActivity extends BaseActivity {
                     mSign = getSign();
                     meetingId = mRoomMeetingList.get(position).getMeetingid();
                     //mUserId = mRoomMeetingList.get(position).getMeetinguserid();
+
                     mNetWork.deleteRoom(mSign, meetingId);
-                    mRoomMeetingList.remove(position);
-                    mAdapter.notifyDataSetChanged();
-                    CRUDChat.deleteByMeetingId(mContext, meetingId);
+
                     break;
 
                 case R.id.imgbtn_more_setting:
@@ -418,11 +526,9 @@ public class MainActivity extends BaseActivity {
         MeetingListEntity meetingListEntity = mRoomMeetingList.get(position);
         String meetingName = meetingListEntity.getMeetname();
         String meetingId = meetingListEntity.getMeetingid();
-
         mNetWork.updateUserMeetingJointime(getSign(), meetingId, position);
 
         int owner = meetingListEntity.getOwner();
-
         if (owner == 0) {
             mNetWork.getMeetingInfo(meetingId, JoinActType.JOIN_ENTER_ACTIVITY);
         } else {
@@ -435,9 +541,9 @@ public class MainActivity extends BaseActivity {
         intent.putExtra("meetingName", meetingName);
         intent.putExtra("meetingId", meetingId);
         intent.putExtra("userId", mUserId);
-        int position = mAdapter.getMeetingIdPosition(meetingId);
-        if (mDebug)
-            Log.e(TAG, "statrMeetingActivity: position" + position);
+        //int position = TeamMeetingApp.getmSelfData().getMeetingIdPosition(meetingId);
+        //if (mDebug)
+        //  Log.e(TAG, "statrMeetingActivity: position" + position);
         //mNetWork.updateUserMeetingJointime(getSign(), meetingId, position);
         mContext.startActivity(intent);
     }
@@ -642,7 +748,6 @@ public class MainActivity extends BaseActivity {
         }
         if (list != null) {
             mRoomMeetingList.clear();
-
             //mRoomMeetingList.addAll();
             mRoomMeetingList = list;
             Logger.e(list.toString() + "----" + mRoomMeetingList.toString());
@@ -654,57 +759,15 @@ public class MainActivity extends BaseActivity {
     }
 
 
-    /**
-     * netWork can user
-     *
-     * @param type
-     */
-    public void netWorkTypeStart(int type) {
-        switch (NetType.values()[type]) {
-            case TYPE_WIFI:
-                if (mDebug)
-                    Log.e(TAG, "TYPE_WIFI ");
-                // netCatchGreatRoom();
-
-                break;
-            case TYPE_4G:
-                if (mDebug)
-                    Log.e(TAG, "TYPE_4G ");
-                break;
-            case TYPE_3G:
-                if (mDebug)
-                    Log.e(TAG, "TYPE_3G ");
-                break;
-            case TYPE_2G:
-                if (mDebug)
-                    Log.e(TAG, "TYPE_2G ");
-                break;
-
-            case TYPE_NULL:
-                if (mDebug)
-                    Log.e(TAG, "TYPE_NULL ");
-
-                break;
-            case TYPE_UNKNOWN:
-                if (mDebug)
-                    Log.e(TAG, "TYPE_UNKNOWN: ");
-
-            default:
-                break;
-        }
-
-    }
-
     private void netCatchGreatRoom() {
         for (int i = 0; i < mRoomMeetingList.size(); i++) {
             MeetingListEntity meetingListEntity = mRoomMeetingList.get(i);
             if (!meetingListEntity.isApplyTyep()) {
                 mNetWork.applyRoom(getSign(), meetingListEntity.getMeetname(), meetingListEntity.getMeettype() + "",
-                        meetingListEntity.getMeetdesc(), meetingListEntity.getMeetusable() + "",
+                        meetingListEntity.getMeetdesc(), meetingListEntity.getMeetenable() + "",
                         meetingListEntity.getPushable() + "", 0, i);
             }
             mAdapter.notifyDataSetChanged();
-
         }
     }
 
@@ -742,16 +805,17 @@ public class MainActivity extends BaseActivity {
 
 
     private void getMeetingInfoSuccess(Message msg) {
-        int usable = msg.getData().getInt("usable");
-        mUrlMeetingName = msg.getData().getString("meetingName");
-        String meetinId;
+        MeetingListEntity meetingListEntity = TeamMeetingApp.getmSelfData().getMeetingListEntity();
+        int usable = meetingListEntity.getMeetenable();
+        mUrlMeetingName = meetingListEntity.getMeetname();
+        String meetinId = meetingListEntity.getMeetingid();
         String joinType;
         switch (usable) {
             case 0://no
                 Toast.makeText(mContext, R.string.str_meeting_deleted, Toast.LENGTH_SHORT).show();
                 break;
             case 1:
-                meetinId = msg.getData().getString("meetingId");
+
                 joinType = msg.getData().getString(JoinActType.JOIN_TYPE);
                 if (joinType == JoinActType.JOIN_ENTER_ACTIVITY) {
                     statrMeetingActivity(mUrlMeetingName, meetinId);
@@ -762,7 +826,6 @@ public class MainActivity extends BaseActivity {
 
             case 2://private
 
-                meetinId = msg.getData().getString("meetingId");
                 joinType = msg.getData().getString(JoinActType.JOIN_TYPE);
                 if (joinType == JoinActType.JOIN_ENTER_ACTIVITY) {
                     statrMeetingActivity(mUrlMeetingName, meetinId);
@@ -774,6 +837,52 @@ public class MainActivity extends BaseActivity {
                 break;
         }
     }
+
+    /**
+     * netWork can user
+     *
+     * @param type
+     */
+
+    public void netWorkTypeStart(int type) {
+        switch (NetType.values()[type]) {
+            case TYPE_WIFI:
+                if (mDebug)
+                    Log.e(TAG, "TYPE_WIFI ");
+                netTyp = true;
+                break;
+            case TYPE_4G:
+                if (mDebug)
+                    Log.e(TAG, "TYPE_4G ");
+                netTyp = true;
+                break;
+            case TYPE_3G:
+                if (mDebug)
+                    Log.e(TAG, "TYPE_3G ");
+                netTyp = true;
+                break;
+            case TYPE_2G:
+                if (mDebug)
+                    Log.e(TAG, "TYPE_2G ");
+                netTyp = true;
+                break;
+
+            case TYPE_NULL:
+                if (mDebug)
+                    Log.e(TAG, "TYPE_NULL ");
+                netTyp = false;
+                progressDiloag();
+                break;
+            case TYPE_UNKNOWN:
+                netTyp = false;
+                if (mDebug)
+                    Log.e(TAG, "TYPE_UNKNOWN: ");
+            default:
+                break;
+        }
+
+    }
+
 
     /**
      * For EventBus callback.
@@ -857,17 +966,16 @@ public class MainActivity extends BaseActivity {
             case MSG_GET_MEETING_INFO_FAILED:
                 if (mDebug)
                     Log.e(TAG, "MSG_GET_MEETING_INFO_FAILED");
-/*          String join_insert_type = msg.getData().getString(JoinActType.JOIN_INSERT_TYPE);
-                if (join_insert_type == JoinActType.JOIN_INSERT_LINK_JOIN_ACTIVITY) {
-                }else if(join_insert_type == JoinActType.JOIN_ENTER_ACTIVITY){
+                String meetingId = msg.getData().getString("meetingid");
+                mNetWork.deleteRoom(getSign(), meetingId);
+                Toast.makeText(mContext, R.string.meeting_delete_create, Toast.LENGTH_SHORT).show();
 
-                }*/
-                Toast.makeText(mContext, msg.getData().getString("message"), Toast.LENGTH_SHORT).show();
                 break;
             case MSG_INSERT_USER_MEETING_ROOM_SUCCESS:
                 if (mDebug)
                     Log.e(TAG, "MSG_INSERT_USER_MEETING_ROOM_SUCCESS");
                 Log.e(TAG, "insertUserMeetingRoomSuccess: " + msg.getData().toString());
+                mAdapter.notifyDataSetChanged();
                 String join_insert_type = msg.getData().getString(JoinActType.JOIN_INSERT_TYPE);
                 if (join_insert_type == JoinActType.JOIN_INSERT_LINK_JOIN_ACTIVITY) {
                     statrMeetingActivity(mUrlMeetingName, mUrlMeetingId);
@@ -892,6 +1000,24 @@ public class MainActivity extends BaseActivity {
                     Log.e(TAG, "MSG_UPDATE_ROOM_PUSHABLE_SUCCESS");
                 mAdapter.notifyDataSetChanged();
                 break;
+
+            case MSG_DELETE_ROOM_SUCCESS:
+                meetingId = msg.getData().getString("meetingid");
+                int position = mAdapter.getMeetingIdPosition(meetingId);
+                mRoomMeetingList.remove(position);
+                mAdapter.notifyDataSetChanged();
+                CRUDChat.deleteByMeetingId(mContext, meetingId);
+
+            case JOIN_MEETINGID_EXIST:
+                int pos = (int) msg.obj;
+                if (mDebug)
+                    Log.e(TAG, "onEventMainThread: pos" + pos);
+                meetingPositiotrue(pos);
+                //enterMeetingActivity(pos);
+
+            case MSG_UPDATE_NICKNAME_SUCCESS:
+                LocalUserInfo.getInstance(mContext).setUserInfoBoolean(LocalUserInfo.SET_USER_NAME, true);
+                Toast.makeText(mContext, R.string.toast_seeting_success, Toast.LENGTH_SHORT).show();
             default:
                 break;
         }

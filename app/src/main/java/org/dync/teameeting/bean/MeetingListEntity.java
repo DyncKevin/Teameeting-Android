@@ -16,14 +16,24 @@ import java.util.List;
  */
 public class MeetingListEntity implements Serializable {
 
+    private String anyrtcid;
     private long createtime;
     private long jointime;
     private String meetdesc;
     private String meetingid;
-    private String meetinguserid;
+    private String userid;
     private String meetname;
     private int meettype;
-    private int meetusable;
+
+    public int getMeetenable() {
+        return meetenable;
+    }
+
+    public void setMeetenable(int meetenable) {
+        this.meetenable = meetenable;
+    }
+
+    private int meetenable;
     private int memnumber;
     private int owner;
     private int pushable;
@@ -84,9 +94,6 @@ public class MeetingListEntity implements Serializable {
         this.meetingid = meetingid;
     }
 
-    public void setMeetinguserid(String meetinguserid) {
-        this.meetinguserid = meetinguserid;
-    }
 
     public void setMeetname(String meetname) {
         this.meetname = meetname;
@@ -94,10 +101,6 @@ public class MeetingListEntity implements Serializable {
 
     public void setMeettype(int meettype) {
         this.meettype = meettype;
-    }
-
-    public void setMeetusable(int meetusable) {
-        this.meetusable = meetusable;
     }
 
     public void setMemnumber(int memnumber) {
@@ -124,8 +127,28 @@ public class MeetingListEntity implements Serializable {
         return meetingid;
     }
 
-    public String getMeetinguserid() {
-        return meetinguserid;
+    public boolean isRead() {
+        return isRead;
+    }
+
+    public void setRead(boolean read) {
+        isRead = read;
+    }
+
+    public String getUserid() {
+        return userid;
+    }
+
+    public void setUserid(String userid) {
+        this.userid = userid;
+    }
+
+    public String getAnyrtcid() {
+        return anyrtcid;
+    }
+
+    public void setAnyrtcid(String anyrtcid) {
+        this.anyrtcid = anyrtcid;
     }
 
     public String getMeetname() {
@@ -136,9 +159,6 @@ public class MeetingListEntity implements Serializable {
         return meettype;
     }
 
-    public int getMeetusable() {
-        return meetusable;
-    }
 
     public int getMemnumber() {
         return memnumber;
@@ -172,14 +192,15 @@ public class MeetingListEntity implements Serializable {
     @Override
     public String toString() {
         return "MeetingListEntity{" +
-                "createtime=" + createtime +
+                "anyrtcid='" + anyrtcid + '\'' +
+                ", createtime=" + createtime +
                 ", jointime=" + jointime +
                 ", meetdesc='" + meetdesc + '\'' +
                 ", meetingid='" + meetingid + '\'' +
-                ", meetinguserid='" + meetinguserid + '\'' +
+                ", userid='" + userid + '\'' +
                 ", meetname='" + meetname + '\'' +
                 ", meettype=" + meettype +
-                ", meetusable=" + meetusable +
+                ", meetusable=" + meetenable +
                 ", memnumber=" + memnumber +
                 ", owner=" + owner +
                 ", pushable=" + pushable +

@@ -33,13 +33,15 @@ public class PopupWindowCustom
 	private int margin_top = 110; // The default distance from the bottom
 	private int mScreenWidth;
 	private int mScreenHeight;
+	private String mShareUrl;
 
 	public PopupWindowCustom(Context context, View btnView, View topbar,
-			OnPopupWindowClickListener listener)
+			OnPopupWindowClickListener listener,String shareUrl)
 	{
 		// TODO Auto-generated constructor stub
 		mContext = context;
 		mOnListener = listener;
+		mShareUrl = shareUrl;
 		initData();
 		inintView();
 		layoutPopup(btnView, topbar);
@@ -110,6 +112,7 @@ public class PopupWindowCustom
 		mInviteWeixinPopup = (ImageButton) mContentView.findViewById(R.id.ibtn_weixin);
 		mCopyLinkText = (TextView) mContentView.findViewById(R.id.tv_copy);
 		mCopyLinkButton = (Button) mContentView.findViewById(R.id.btn_copy);
+		mCopyLinkText.setText(mShareUrl);
 
 		mClosePopup.setOnClickListener(mOnClickListener);
 		mInviteMessagePopup.setOnClickListener(mOnClickListener);
