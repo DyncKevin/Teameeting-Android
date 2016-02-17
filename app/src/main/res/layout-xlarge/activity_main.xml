@@ -7,60 +7,60 @@
 
     <RelativeLayout
 
-        android:id="@+id/rl_main"
-        android:layout_width="@dimen/room_list_width_pad"
+    android:id="@+id/rl_main"
+    android:layout_width="@dimen/room_list_width_pad"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <RelativeLayout
+        android:id="@+id/main_tb_layout"
+        style="@style/TopBar_Style"
+        android:layout_height="@dimen/height_top_bar"
+        android:background="@color/black_deep" >
+
+        <TextView
+            android:id="@+id/tv_cancel_create_room"
+            style="@style/Left_Title_Txt"
+            android:text="@string/str_cancel_create"
+            android:textColor="#ffffff"
+            android:textSize="20sp"
+            android:visibility="gone" />
+
+        <TextView
+            style="@style/Title_Txt"
+            android:text="@string/str_rent_rooms"
+            android:textColor="#ffffff"
+            android:textSize="24sp"
+            android:textStyle="normal" />
+
+        <ImageButton
+            android:id="@+id/ibtn_join_meeting"
+            style="@style/Btn_right"
+
+            android:src="@drawable/btn_invite" />
+    </RelativeLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_below="@id/main_tb_layout"
+        android:layout_marginBottom="@dimen/btn_create_room_height"
+        android:orientation="vertical" >
 
-        <RelativeLayout
-            android:id="@+id/main_tb_layout"
-            style="@style/TopBar_Style"
-            android:layout_height="@dimen/height_top_bar"
-            android:background="@color/black_deep">
-
-            <TextView
-                android:id="@+id/tv_cancel_create_room"
-                style="@style/Left_Title_Txt"
-                android:text="@string/str_cancel_create"
-                android:textColor="#ffffff"
-                android:textSize="20sp"
-                android:visibility="gone" />
-
-            <TextView
-                style="@style/Title_Txt"
-                android:text="@string/str_rent_rooms"
-                android:textColor="#ffffff"
-                android:textSize="24sp"
-                android:textStyle="normal" />
-
-            <ImageButton
-                android:id="@+id/ibtn_join_meeting"
-                style="@style/Btn_right"
-
-                android:src="@drawable/btn_invite" />
-        </RelativeLayout>
-
-        <LinearLayout
+        <EditText
+            android:id="@+id/et_create_room"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_below="@id/main_tb_layout"
-            android:layout_marginBottom="@dimen/btn_create_room_height"
-            android:orientation="vertical">
-
-            <EditText
-                android:id="@+id/et_create_room"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:background="@drawable/edittext_bg"
-                android:hint="@string/str_hintm"
-                android:imeOptions="actionDone"
-                android:paddingBottom="10dp"
-                android:paddingLeft="20dp"
-                android:paddingTop="10dp"
-                android:singleLine="true"
-                android:textColor="@color/black"
-                android:textSize="@dimen/largest_most_txt_size"
-                android:visibility="gone" />
+            android:layout_height="60dp"
+            android:background="@drawable/edittext_bg"
+            android:hint="@string/str_hintm"
+            android:imeOptions="actionDone"
+            android:paddingBottom="10dp"
+            android:paddingLeft="20dp"
+            android:paddingTop="10dp"
+            android:singleLine="true"
+            android:textColor="@color/black"
+            android:textSize="@dimen/largest_most_txt_size"
+            android:visibility="gone" />
 
             <FrameLayout
                 android:layout_width="match_parent"
@@ -91,6 +91,6 @@
             android:textColor="@color/white"
             android:textSize="@dimen/largest_most_txt_size" />
 
-    </RelativeLayout>
+</RelativeLayout>
 
 </LinearLayout>
