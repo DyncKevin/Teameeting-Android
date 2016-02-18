@@ -10,8 +10,8 @@ import com.orhanobut.logger.Logger;
 import org.dync.teameeting.TeamMeetingApp;
 import org.dync.teameeting.bean.ReqSndMsgEntity;
 import org.dync.teameeting.db.CRUDChat;
-import org.dync.teameeting.sdkmsgclientandroid.jni.JMClientHelper;
-import org.dync.teameeting.sdkmsgclientandroid.jni.JMClientType;
+import org.dync.teameeting.sdkmsgclient.jni.JMClientHelper;
+import org.dync.teameeting.sdkmsgclient.jni.JMClientType;
 import org.dync.teameeting.structs.EventType;
 
 import java.util.ArrayList;
