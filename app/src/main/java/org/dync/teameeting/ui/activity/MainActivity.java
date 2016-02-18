@@ -234,15 +234,22 @@ public class MainActivity extends BaseActivity {
                 if (!s.equals("")) {
 
                     if (s.equals(uname)) {
+
                         LocalUserInfo.getInstance(mContext).setUserInfoBoolean(LocalUserInfo.SET_USER_NAME, true);
-                        return;
+
+                    }else{
+
+                        mNetWork.updateNickname(getSign(), s.trim());
+                        mMsgSender.TMSetNickName(s.trim());
                     }
-                    mNetWork.updateNickname(getSign(), s.trim());
-                    mMsgSender.TMSetNickName(s.trim());
+
                     dialog.cancel();
                     return;
                 }
-                Toast.makeText(mContext, "不能为空", Toast.LENGTH_SHORT).show();
+                else{
+                    Toast.makeText(mContext, "不能为空", Toast.LENGTH_SHORT).show();
+                }
+
             }
         });
 
