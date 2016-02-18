@@ -31,7 +31,6 @@ import java.util.Map;
  */
 public class VideoViews implements View.OnTouchListener{
     private static final boolean mDebug = TeamMeetingApp.mIsDebug;
-    private final  int   UPDATE_UI = 0X01;
     private static final String TAG = "VideoViews";
     private  int SUB_X= 5;
     private  int SUB_Y = 65;
@@ -414,7 +413,7 @@ public class VideoViews implements View.OnTouchListener{
 
         }else{
 
-            SUB_Y = 50;
+            SUB_Y = 45;
             SUB_WIDTH = 18;
             SUB_HEIGHT = 25;
 
