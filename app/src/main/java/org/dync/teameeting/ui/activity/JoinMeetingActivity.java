@@ -16,7 +16,7 @@ import android.widget.Toast;
 import org.dync.teameeting.R;
 import org.dync.teameeting.TeamMeetingApp;
 import org.dync.teameeting.bean.MeetingListEntity;
-import org.dync.teameeting.sdkmsgclientandroid.msgs.TMMsgSender;
+import org.dync.teameeting.sdkmsgclient.msgs.TMMsgSender;
 import org.dync.teameeting.structs.EventType;
 import org.dync.teameeting.structs.JoinActType;
 

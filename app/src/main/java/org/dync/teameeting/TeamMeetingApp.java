@@ -18,7 +18,7 @@ import org.anyrtc.Anyrtc;
 import org.dync.teameeting.bean.SelfData;
 import org.dync.teameeting.chatmessage.ChatMessageClient;
 import org.dync.teameeting.receiver.NetWorkReceiver;
-import org.dync.teameeting.sdkmsgclientandroid.msgs.TMMsgSender;
+import org.dync.teameeting.sdkmsgclient.msgs.TMMsgSender;
 import org.dync.teameeting.utils.ScreenUtils;
 
 import cn.jpush.android.api.JPushInterface;
