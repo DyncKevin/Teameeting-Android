@@ -93,7 +93,7 @@ public class Anims
         paramView.setVisibility(View.VISIBLE);
     }
 
-    public static void ScaleAnim(View view, float from, long to,long time)
+    public static void ScaleAnim(View view, float from, float to,long time)
     {
         ScaleAnimation scaleAnimation = new ScaleAnimation(from,to,from,to, Animation.RELATIVE_TO_SELF,0.5f, Animation.RELATIVE_TO_SELF,0.5f);
         scaleAnimation.setDuration(time);

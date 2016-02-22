@@ -46,6 +46,7 @@ import org.dync.teameeting.ui.adapter.SwipeListAdapter;
 import org.dync.teameeting.ui.adapter.SwipeListAdapter.SwipeListOnClick;
 import org.dync.teameeting.ui.helper.DialogHelper;
 import org.dync.teameeting.utils.LocalUserInfo;
+import org.dync.teameeting.utils.MeetingHelper;
 import org.dync.teameeting.utils.ScreenUtils;
 
 import java.util.ArrayList;
@@ -151,7 +152,15 @@ public class MainActivity extends BaseActivity {
         upDataMeetingList();
         mMsgSender = TeamMeetingApp.getmMsgSender();
         isSetUserName = LocalUserInfo.getInstance(mContext).getUserInfoBoolean(LocalUserInfo.SET_USER_NAME);
-        mUrlMeetingId = getIntent().getStringExtra("urlMeetingId");
+        Intent intent = getIntent();
+        boolean isNotifactionChack = intent.getBooleanExtra("isNotifactionChack", false);
+        mUrlMeetingId = intent.getStringExtra("urlMeetingId");
+
+        if (isNotifactionChack) {
+            int position = MeetingHelper.getMeetingIdPosition(mRoomMeetingList, mUrlMeetingId);
+            enterMeetingActivity(position);
+            return;
+        }
 
         if (mUrlMeetingId != null) {
             mUrlInsertMeegting = true;
@@ -203,6 +212,9 @@ public class MainActivity extends BaseActivity {
         }
     }
 
+    /**
+     * upDate Name Dialog
+     */
     private void showupdateNicknameDialog() {
         final Dialog dialog = new Dialog(this);
         dialog.show();
@@ -534,10 +546,6 @@ public class MainActivity extends BaseActivity {
         intent.putExtra("meetingName", meetingName);
         intent.putExtra("meetingId", meetingId);
         intent.putExtra("userId", mUserId);
-        //int position = TeamMeetingApp.getmSelfData().getMeetingIdPosition(meetingId);
-        //if (mDebug)
-        //  Log.e(TAG, "statrMeetingActivity: position" + position);
-        //mNetWork.updateUserMeetingJointime(getSign(), meetingId, position);
         mContext.startActivity(intent);
     }
 
@@ -602,8 +610,10 @@ public class MainActivity extends BaseActivity {
         MeetingListEntity meetingEntity = mRoomMeetingList.get(position);
         Bundle mBundle = new Bundle();
         mBundle.putSerializable(Intent_KEY.MEETING_ENTY, meetingEntity);
+
         intent.putExtras(mBundle);
         intent.putExtra(Intent_KEY.POSITION, position);
+
         startActivityForResult(intent, ExtraType.REQUEST_CODE_ROOM_SETTING);
         ((Activity) mContext).overridePendingTransition(R.anim.activity_open_enter, R.anim.activity_open_exit);
     }
@@ -659,15 +669,18 @@ public class MainActivity extends BaseActivity {
                 break;
             case ExtraType.RESULT_CODE_ROOM_SETTING_DELETE:
                 seetingDeleteRoom(data);
+                break;
             case ExtraType.RESULT_CODE_ROOM_SETTING_CLOSE:
                 if (mDebug)
                     Log.e(TAG, "onActivityResult-Seeting: 关闭");
-                // getListNetWork();
+               mAdapter.notifyDataSetChanged();
                 break;
             case ExtraType.REQUEST_CODE_ROOM_MEETING:
                 if (mDebug)
                     Log.e(TAG, "onActivityResult: -Meeting 关闭");
+
                 mAdapter.notifyDataSetChanged();
+                break;
             default:
                 break;
         }
@@ -904,7 +917,7 @@ public class MainActivity extends BaseActivity {
             case MSG_GET_ROOM_LIST_SUCCESS:
                 if (mDebug)
                     Log.e(TAG, "MSG_GET_ROOM_LIST_SUCCESS");
-                // 创建房间
+
                 getRoomListSuccess(msg);
                 break;
             case MSG_GET_ROOM_LIST_FAILED:
@@ -984,16 +997,6 @@ public class MainActivity extends BaseActivity {
                 if (mDebug)
                     Log.e(TAG, " " + mAdapter.getCount());
                 break;
-            case MSG_UPDATE_ROOM_PUSHABLE_SUCCESS:
-                if (mDebug)
-                    Log.e(TAG, "MSG_UPDATE_ROOM_PUSHABLE_SUCCESS");
-                mAdapter.notifyDataSetChanged();
-            case MSG_UPDATE_ROOM_ENABLE_SUCCESS:
-                if (mDebug)
-                    Log.e(TAG, "MSG_UPDATE_ROOM_PUSHABLE_SUCCESS");
-                mAdapter.notifyDataSetChanged();
-                break;
-
             case MSG_DELETE_ROOM_SUCCESS:
                 meetingId = msg.getData().getString("meetingid");
                 int position = mAdapter.getMeetingIdPosition(meetingId);
@@ -1008,9 +1011,10 @@ public class MainActivity extends BaseActivity {
                 meetingPositiotrue(pos);
                 //enterMeetingActivity(pos);
 
-            case MSG_UPDATE_NICKNAME_SUCCESS:
+            case MSG_UPDATE_NICKNAME_SUCCESS: {
                 LocalUserInfo.getInstance(mContext).setUserInfoBoolean(LocalUserInfo.SET_USER_NAME, true);
                 Toast.makeText(mContext, R.string.toast_seeting_success, Toast.LENGTH_SHORT).show();
+            }
             default:
                 break;
         }

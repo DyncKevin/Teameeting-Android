@@ -277,7 +277,6 @@ public class RoomSettingActivity extends BaseActivity implements View.OnClickLis
                 setResult(ExtraType.RESULT_CODE_ROOM_SETTING_CLOSE);
                 if (mDebug)
                     Log.e(TAG, "onClick: setResult");
-
                 finishActivity();
                 return;
             case R.id.tv_join_room:

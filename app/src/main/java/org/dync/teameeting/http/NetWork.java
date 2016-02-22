@@ -41,10 +41,7 @@ import java.util.Map.Entry;
 import de.greenrobot.event.EventBus;
 
 public class NetWork {
-
     private static final String TAG = "NetWork";
-    private static final boolean mDebug = TeamMeetingApp.mIsDebug;
-
 
     /**
      * init
@@ -72,8 +69,8 @@ public class NetWork {
         HttpContent.post(url, params, new TmTextHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, int code, String message, String responseString, Header[] headers) {
-               if (mDebug)
-                   Logger.e(responseString);
+                if (mDebug)
+                    Logger.e(responseString);
 
                 if (code == 200) {
                     SelfData selfData = gson.fromJson(responseString, SelfData.class);
@@ -92,7 +89,13 @@ public class NetWork {
         });
     }
 
-
+    /**
+     * getRoomLists
+     *
+     * @param sign
+     * @param pageNum
+     * @param pageSize
+     */
     public void getRoomLists(final String sign, final String pageNum, final String pageSize) {
         String url = "meeting/getRoomList";
         RequestParams params = new RequestParams();
@@ -118,7 +121,6 @@ public class NetWork {
                 bundle.putString("message", message);
                 msg.setData(bundle);
                 EventBus.getDefault().post(msg);
-
             }
         });
 
@@ -154,6 +156,17 @@ public class NetWork {
         });
     }
 
+    /**
+     * applyRoom
+     *
+     * @param sign
+     * @param meetingname
+     * @param meetingtype
+     * @param meetdesc
+     * @param meetenable
+     * @param pushable
+     * @return
+     */
     public MeetingListEntity applyRoom(final String sign, final String meetingname,
                                        final String meetingtype, final String meetdesc, final String meetenable,
                                        final String pushable) {
@@ -220,8 +233,6 @@ public class NetWork {
                     msg.setData(bundle);
                     EventBus.getDefault().post(msg);
                 }
-
-
             }
         });
         return null;
@@ -257,11 +268,8 @@ public class NetWork {
                 bundle.putString("message", message);
                 msg.setData(bundle);
                 EventBus.getDefault().post(msg);
-
             }
         });
-
-
     }
 
 
@@ -300,7 +308,6 @@ public class NetWork {
                 msg.setData(bundle);
                 EventBus.getDefault().post(msg);
             }
-
         });
     }
 
@@ -324,8 +331,8 @@ public class NetWork {
                 super.onSuccess(statusCode, code, message, responseString, headers);
                 if (mDebug)
                     Log.e(TAG, "onSuccess: updateRoomEnable" + responseString);
-                TeamMeetingApp.getmSelfData().getMeetingLists().get(position).setMemnumber(enable);
                 if (code == 200) {
+                    TeamMeetingApp.getmSelfData().getMeetingLists().get(position).setMeetenable(enable);
                     msg.what = EventType.MSG_UPDATE_ROOM_ENABLE_SUCCESS.ordinal();
                 } else {
                     msg.what = EventType.MSG_UPDATE_ROOM_ENABLE_FAILED.ordinal();
@@ -333,13 +340,9 @@ public class NetWork {
                 bundle.putString("message", message);
                 msg.setData(bundle);
                 EventBus.getDefault().post(msg);
-
             }
         });
-
-
     }
-
 
     /**
      * updateMeetRoomName
@@ -363,11 +366,9 @@ public class NetWork {
                 if (mDebug)
 
                     if (code == 200) {
-                        msg.what = EventType.MSG_UPDATE_MEET_ROOM_NAME_SUCCESS
-                                .ordinal();
+                        msg.what = EventType.MSG_UPDATE_MEET_ROOM_NAME_SUCCESS.ordinal();
                     } else {
-                        msg.what = EventType.MSG_UPDATE_MEET_ROOM_NAME_FAILED
-                                .ordinal();
+                        msg.what = EventType.MSG_UPDATE_MEET_ROOM_NAME_FAILED.ordinal();
                     }
 
                 bundle.putString("message", message);
@@ -446,8 +447,6 @@ public class NetWork {
                         String info = json.getString("meetingInfo");
 
                         MeetingListEntity meetingInfo = gson.fromJson(info, MeetingListEntity.class);
-
-
                         TeamMeetingApp.getmSelfData().setMeetingListEntity(meetingInfo);
 
                     } catch (JSONException e) {
@@ -488,7 +487,6 @@ public class NetWork {
                     Log.e(TAG, "onSuccess: updateUserMeetingJointime" + responseString);
                 if (code == 200) {
                     try {
-                        //更新当前room的值
                         JSONObject jsonObject = new JSONObject(responseString);
                         long jointime = jsonObject.getLong("jointime");
                         List<MeetingListEntity> meetingLists = TeamMeetingApp.getmSelfData().getMeetingLists();
@@ -497,16 +495,10 @@ public class NetWork {
                         meetingListEntity.setJointime(jointime);
                         meetingLists.remove(position);
                         meetingLists.add(0, meetingListEntity);
-                        //Logger.e(meetingLists.size()+"------"+ TeamMeetingApp.getmSelfData().getMeetingLists().size());
-                        //TeamMeetingApp.getmSelfData().setMeetingLists(meetingLists);
-
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-
                     msg.what = EventType.MSG_UP_DATE_USER_MEETING_JOIN_TIME_SUCCESS.ordinal();
-
-
                 } else {
                     msg.what = EventType.MSG_UP_DATE_USER_MEETING_JOIN_TIME_FAILED.ordinal();
                 }
@@ -535,7 +527,6 @@ public class NetWork {
             @Override
             public void onSuccess(int statusCode, int code, String message, String responseString, Header[] headers) {
                 super.onSuccess(statusCode, code, message, responseString, headers);
-
                 if (mDebug)
                     Log.e(TAG, "onSuccess: insertUserMeetingRoom" + responseString);
                 if (code == 200) {
@@ -545,14 +536,11 @@ public class NetWork {
                     msg.what = EventType.MSG_INSERT_USER_MEETING_ROOM_FAILED
                             .ordinal();
                 }
-
                 bundle.putString("meetingid", meetingid);
                 bundle.putString("message", message);
                 bundle.putString(JoinActType.JOIN_INSERT_TYPE, join_insert_type);
                 msg.setData(bundle);
-
                 EventBus.getDefault().post(msg);
-
             }
         });
 
@@ -590,12 +578,10 @@ public class NetWork {
                     msg.what = EventType.MSG_PUSH_MEETING_MSG_FAILED
                             .ordinal();
                 }
-
                 bundle.putString("message", message);
                 msg.setData(bundle);
                 // 测试
                 EventBus.getDefault().post(msg);
-
             }
         });
 
@@ -632,9 +618,5 @@ public class NetWork {
                 EventBus.getDefault().post(msg);
             }
         });
-
-
     }
-
-
 }

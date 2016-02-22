@@ -5,16 +5,6 @@ package org.dync.teameeting.bean;
  */
 public class MessageListEntity {
 
-    /**
-     * id : 56
-     * messagetype : 0
-     * meetingid : 400000000491
-     * sessionid : e4cd6dad85c08adb73a2f9b9d7547386
-     * userid : a2835c4583ec7bab
-     * sendtime : 1452758647241
-     * message : 123
-     */
-
     private int id;
     private int messagetype;
     private String meetingid;

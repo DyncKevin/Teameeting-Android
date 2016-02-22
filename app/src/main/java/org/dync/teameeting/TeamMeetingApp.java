@@ -37,6 +37,26 @@ public class TeamMeetingApp extends Application {
     public static boolean isPad = false;
     private static TMMsgSender mMsgSender;
 
+    public static TeamMeetingApp getTeamMeetingApp() {
+        return mTeamMeetingApp;
+    }
+    /*chat message deal with*/
+    public static TMMsgSender getmMsgSender() {
+        return mMsgSender;
+    }
+
+    public void setmMsgSender(TMMsgSender msgSender) {
+        mMsgSender = msgSender;
+    }
+
+    public static void setSelfData(SelfData selfData) {
+        mSelfData = selfData;
+    }
+
+    public static SelfData getmSelfData() {
+        return mSelfData;
+    }
+
     public static ChatMessageClient getmChatMessageClient() {
         return mChatMessageClient;
     }
@@ -56,7 +76,6 @@ public class TeamMeetingApp extends Application {
         }
         JPushInterface.setDebugMode(true);
         JPushInterface.init(this);
-
         Anyrtc.InitAnyrtc("mzw0001", "defq34hj92mxxjhaxxgjfdqi1s332dd", "d74TcmQDMB5nWx9zfJ5al7JdEg3XwySwCkhdB9lvnd1", "org.dync.app");
     }
 
@@ -75,30 +94,6 @@ public class TeamMeetingApp extends Application {
         mTeamMeetingApp = this;
     }
 
-
-    public static TeamMeetingApp getTeamMeetingApp() {
-
-        return mTeamMeetingApp;
-    }
-
-
-    /*chat message deal with*/
-    public static TMMsgSender getmMsgSender() {
-        return mMsgSender;
-    }
-
-    public void setmMsgSender(TMMsgSender msgSender) {
-        mMsgSender = msgSender;
-    }
-
-
-    public static void setSelfData(SelfData selfData) {
-        mSelfData = selfData;
-    }
-
-    public static SelfData getmSelfData() {
-        return mSelfData;
-    }
 
     /**
      * get the Token from manifest.xml
@@ -123,7 +118,7 @@ public class TeamMeetingApp extends Application {
 
     public void Destroy() {
         unregisterReceiver(mNetReceiver);
-        if (mMsgSender!=null)
+        if (mMsgSender != null)
             mMsgSender.TMUnin();
     }
 
