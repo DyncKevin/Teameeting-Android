@@ -2,35 +2,21 @@ package org.dync.teameeting.ui.activity;
 
 import android.content.Context;
 import android.content.Intent;
-
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
-
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-
 import android.util.Log;
-
 import android.view.View;
-
 import android.view.animation.Animation;
 import android.view.animation.Animation.AnimationListener;
 import android.view.animation.AnimationUtils;
-
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
-
-import cn.jpush.android.api.CustomPushNotificationBuilder;
-import cn.jpush.android.api.JPushInterface;
-import cn.jpush.android.api.TagAliasCallback;
-
-import cn.pedant.SweetAlert.SweetAlertDialog;
-import cn.pedant.SweetAlert.SweetAlertDialog.OnSweetClickListener;
 
 import org.dync.teameeting.R;
 import org.dync.teameeting.TeamMeetingApp;
@@ -45,6 +31,11 @@ import org.json.JSONObject;
 
 import java.util.HashSet;
 import java.util.Set;
+
+import cn.jpush.android.api.JPushInterface;
+import cn.jpush.android.api.TagAliasCallback;
+import cn.pedant.SweetAlert.SweetAlertDialog;
+import cn.pedant.SweetAlert.SweetAlertDialog.OnSweetClickListener;
 
 
 /**
@@ -69,6 +60,7 @@ public class StartFlashActivity extends BaseActivity {
     private String mSign;
     private ProgressBar mLoadingProgress;
     private String mUrlMeetingId = null;
+    private Integer mTags = 0;
     private String mNname = "nick name";
     private final Handler mHandler = new Handler() {
         @Override
@@ -208,18 +200,6 @@ public class StartFlashActivity extends BaseActivity {
         mHandler.sendEmptyMessage(MSG_SET_TAGS);
     }
 
-    /**
-     * set Push Style
-     */
-    public void setPushNotificationBuilderIcon() {
-        CustomPushNotificationBuilder builder = new CustomPushNotificationBuilder(this,
-                R.layout.customer_notitfication_layout, R.id.icon, R.id.title,
-                R.id.text);
-
-        builder.statusBarDrawable = R.drawable.ic_richpush_actionbar_back;
-        builder.layoutIconDrawable = R.drawable.ic_richpush_actionbar_back;
-        JPushInterface.setPushNotificationBuilder(2, builder);
-    }
 
     /**
      * inint View
@@ -252,11 +232,10 @@ public class StartFlashActivity extends BaseActivity {
                 mUrlMeetingId = content.substring(13);
                 isNotifactionChack = false;
                 if (mDebug) {
-                    Log.e(TAG,
-                            "initData: " + uri.toString() + " content " + content);
+                    Log.e(TAG, "initData: " + uri.toString() + " content " + content);
                 }
             }
-        } else if (MyReceiver.ACTION_NOTIFACTION.equals(action)) {
+        } else if (MyReceiver.ACTIVITY_ACTION_NOTIFACTION.equals(action)) {
             Bundle bundle = intent.getExtras();
             String notifaction = bundle.getString(JPushInterface.EXTRA_EXTRA);
             isNotifactionChack = true;
@@ -264,6 +243,7 @@ public class StartFlashActivity extends BaseActivity {
             try {
                 json = new JSONObject(notifaction);
                 mUrlMeetingId = json.getString("roomid");
+                mTags = json.getInt("tags");
                 if (mDebug) {
                     Log.e(TAG, "meetingId " + mUrlMeetingId);
                 }
@@ -326,8 +306,11 @@ public class StartFlashActivity extends BaseActivity {
                     .setUserInfoBoolean(LocalUserInfo.FIRST_LOGIN, false);
         } else {
             intent = new Intent(StartFlashActivity.this, MainActivity.class);
-            intent.putExtra("isNotifactionChack",isNotifactionChack);
+            intent.putExtra("isNotifactionChack", isNotifactionChack);
             intent.putExtra("urlMeetingId", mUrlMeetingId);
+            intent.putExtra("tags", mTags);
+            //Storage notification flag
+            LocalUserInfo.getInstance(context).setUserInfoInt(LocalUserInfo.NOTIFIACTION_TAGS, mTags);
         }
 
         startActivity(intent);

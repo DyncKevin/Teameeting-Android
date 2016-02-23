@@ -119,6 +119,7 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
     private int mMessagePageNum = 1;
 
     private SweetAlertDialog mNetErrorSweetAlertDialog;
+    private int mNotifTags;
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
@@ -176,7 +177,6 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
                         mChatView.setSelection(mDatas.size() - 1);
                     else
                         mChatView.setSelection(mDatas.size() - oldSize);
-
                 default:
                     break;
             }
@@ -191,8 +191,6 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
 
         initView();
         inintData();
-
-
     }
 
 
@@ -227,6 +225,7 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
         Intent intent = getIntent();
         mMeetingId = intent.getStringExtra("meetingId");
         mUserId = intent.getStringExtra("userId");
+        mNotifTags = intent.getIntExtra("tags", 0);
         String roomName = getIntent().getStringExtra("meetingName");
         mTvRoomName.setText(roomName);
 
@@ -246,8 +245,15 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
         }
 
         mNetWork.getMeetingMsgList(getSign(), mMeetingId, "" + mMessagePageNum, 20 + "");
+        if (mNotifTags == 1) {
 
-
+            if (TeamMeetingApp.isPad) {
+                chatLayoutControl(300);
+            } else {
+                mMessageShowFlag = false;
+                mChatLayout.setVisibility(View.VISIBLE);
+            }
+        }
     }
 
 
@@ -327,29 +333,6 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
         }
         return super.onTouchEvent(event);
     }
-
-/*    private void initSwipeRefreshLayout() {
-        final SwipeRefreshLayout swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_container);
-        swipeRefreshLayout.setColorScheme(android.R.color.holo_blue_light, android.R.color.holo_red_light, android.R.color.holo_orange_light, android.R.color.holo_green_light);
-        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-
-                if (mDebug) {
-                    Log.e(TAG, "onRefresh:mSign" + mSign);
-                }
-                mMessagePageNum++;
-                mNetWork.getMeetingMsgList(getSign(),mMeetingId,""+mMessagePageNum,20+"");
-
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        swipeRefreshLayout.setRefreshing(false);
-                    }
-                }, 3000);
-            }
-        });
-    }*/
 
     /**
      * chataShow
@@ -770,7 +753,7 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
         mChatView.setSelection(mDatas.size() - 1);
         mMsg.setText("");
 
-      //  mNetWork.pushMeetingMsg(getSign(), mMeetingId, "push message", "notification");
+        //  mNetWork.pushMeetingMsg(getSign(), mMeetingId, "push message", "notification");
 
         int code = mMsgSender.TMSndMsg(mMeetingId, mRname, pushMsg);
         if (code >= 0) {

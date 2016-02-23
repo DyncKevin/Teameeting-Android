@@ -7,16 +7,22 @@ import android.util.Log;
 import com.google.gson.Gson;
 import com.orhanobut.logger.Logger;
 
-import de.greenrobot.event.EventBus;
-
 import org.dync.teameeting.TeamMeetingApp;
 import org.dync.teameeting.bean.ReqSndMsgEntity;
 import org.dync.teameeting.db.CRUDChat;
 import org.dync.teameeting.sdkmsgclient.jni.JMClientHelper;
 import org.dync.teameeting.sdkmsgclient.jni.JMClientType;
 import org.dync.teameeting.structs.EventType;
+import org.dync.teameeting.ui.helper.ActivityTaskHelp;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import cn.jpush.android.api.JPushInterface;
+import cn.jpush.android.data.JPushLocalNotification;
+import de.greenrobot.event.EventBus;
 
 
 /**
@@ -67,34 +73,54 @@ public class ChatMessageClient implements JMClientHelper {
     /**
      * implement for JMClientHelper
      */
+
+
     public void OnSndMsg(String msg) {
         if (mDebug) {
             Logger.e(msg);
         }
-
         if (msg != null) {
-            mMessage = new Message();
-
-            Gson gson = new Gson();
-            ReqSndMsgEntity reqSndMsgEntity = gson.fromJson(msg,
-                    ReqSndMsgEntity.class);
-
-            if (mDebug) {
-                Log.e(TAG,
-                        reqSndMsgEntity.getFrom() + "---" +
-                                TeamMeetingApp.getTeamMeetingApp().getDevId());
-            }
-
-            if (true) {
-                if (reqSndMsgEntity.getTags() == JMClientType.MCSENDTAGS_TALK) {
-                    CRUDChat.queryInsert(context, reqSndMsgEntity);
-                }
-
-                notifyRequestMessage(reqSndMsgEntity);
-            } else {
-            }
+            senMag(msg);
         }
     }
+
+    private void senMag(String msg) {
+        Gson gson = new Gson();
+        ReqSndMsgEntity reqSndMsgEntity = gson.fromJson(msg, ReqSndMsgEntity.class);
+
+        if (mDebug) {
+            Log.e(TAG, reqSndMsgEntity.getFrom() + "---" + TeamMeetingApp.getTeamMeetingApp().getDevId());
+        }
+
+        if (reqSndMsgEntity.getTags() == JMClientType.MCSENDTAGS_TALK) {
+            CRUDChat.queryInsert(context, reqSndMsgEntity);
+        }
+
+        notifyRequestMessage(reqSndMsgEntity);
+
+        //Are push local news
+        if (!ActivityTaskHelp.isPackageNameonResume(context, context.getPackageName())) {
+            sendPushNotifiaction(reqSndMsgEntity);
+        }
+    }
+
+    int i = 11111111;
+    public void sendPushNotifiaction(ReqSndMsgEntity reqSndMsgEntity) {
+        JPushLocalNotification ln = new JPushLocalNotification();
+        ln.setBuilderId(0);
+        ln.setContent("Teameeting");
+        ln.setTitle("有人发消息来了");
+        i++;
+        ln.setNotificationId(i);
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("tags", 1);
+        map.put("roomid", reqSndMsgEntity.getRoom());
+        JSONObject json = new JSONObject(map);
+        ln.setExtras(json.toString());
+        JPushInterface.addLocalNotification(context.getApplicationContext(), ln);
+
+    }
+
 
     @Override
     public void OnGetMsg(String msg) {
@@ -136,6 +162,7 @@ public class ChatMessageClient implements JMClientHelper {
             Log.i(TAG, "OnMsgServerState: " + connStatus);
         }
     }
+
 
     public interface ChatMessageObserver {
         void OnReqSndMsg(ReqSndMsgEntity reqSndMsg);

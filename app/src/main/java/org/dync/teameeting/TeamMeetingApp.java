@@ -79,6 +79,10 @@ public class TeamMeetingApp extends Application {
         Anyrtc.InitAnyrtc("mzw0001", "defq34hj92mxxjhaxxgjfdqi1s332dd", "d74TcmQDMB5nWx9zfJ5al7JdEg3XwySwCkhdB9lvnd1", "org.dync.app");
     }
 
+    public Context getContext() {
+        return context;
+    }
+
     /**
      * registerReceiver
      */

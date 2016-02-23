@@ -90,7 +90,13 @@ public class MainActivity extends BaseActivity {
     private TMMsgSender mMsgSender;
 
     private String mUrlMeetingId;
+    private int mNotifTags = 0;
     private String mUrlMeetingName;
+
+    private SweetAlertDialog mWarningCancel;
+    private boolean isSetUserName;
+    private boolean isNotifactionChack;
+
 
     private Handler mUIHandler = new Handler() {
         public void handleMessage(Message msg) {
@@ -127,8 +133,6 @@ public class MainActivity extends BaseActivity {
             }
         }
     };
-    private SweetAlertDialog mWarningCancel;
-    private boolean isSetUserName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -153,11 +157,12 @@ public class MainActivity extends BaseActivity {
         mMsgSender = TeamMeetingApp.getmMsgSender();
         isSetUserName = LocalUserInfo.getInstance(mContext).getUserInfoBoolean(LocalUserInfo.SET_USER_NAME);
         Intent intent = getIntent();
-        boolean isNotifactionChack = intent.getBooleanExtra("isNotifactionChack", false);
+        isNotifactionChack = intent.getBooleanExtra("isNotifactionChack", false);
         mUrlMeetingId = intent.getStringExtra("urlMeetingId");
 
         if (isNotifactionChack) {
             int position = MeetingHelper.getMeetingIdPosition(mRoomMeetingList, mUrlMeetingId);
+            mNotifTags = intent.getIntExtra("tags", 0);
             enterMeetingActivity(position);
             return;
         }
@@ -180,6 +185,7 @@ public class MainActivity extends BaseActivity {
 
 
     }
+
 
     /**
      * inintLayout
@@ -546,6 +552,9 @@ public class MainActivity extends BaseActivity {
         intent.putExtra("meetingName", meetingName);
         intent.putExtra("meetingId", meetingId);
         intent.putExtra("userId", mUserId);
+        if (isNotifactionChack) {
+            intent.putExtra("tags", mNotifTags);
+        }
         mContext.startActivity(intent);
     }
 
@@ -632,7 +641,6 @@ public class MainActivity extends BaseActivity {
             } else {
                 mSign = getSign();
                 mNetWork.signOut(mSign);
-
                 this.finish();
             }
             return true;
@@ -673,7 +681,7 @@ public class MainActivity extends BaseActivity {
             case ExtraType.RESULT_CODE_ROOM_SETTING_CLOSE:
                 if (mDebug)
                     Log.e(TAG, "onActivityResult-Seeting: 关闭");
-               mAdapter.notifyDataSetChanged();
+                mAdapter.notifyDataSetChanged();
                 break;
             case ExtraType.REQUEST_CODE_ROOM_MEETING:
                 if (mDebug)

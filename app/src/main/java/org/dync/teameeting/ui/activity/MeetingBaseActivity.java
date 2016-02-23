@@ -41,7 +41,6 @@ public class MeetingBaseActivity extends Activity implements IChatMessageIntefac
     private RelativeLayout mainView;
     private ChatMessageClient mChatMessageClinet;
     Random random = new Random();
-    public int mTopMargin = 0;
     public String mSign;
     NetWork mNetWork;
     private boolean isShowMessage = true;
@@ -159,14 +158,11 @@ public class MeetingBaseActivity extends Activity implements IChatMessageIntefac
         // handler.removeCallbacksAndMessages(null);
     }
 
-
     /**
      * @param chactView
      * @return
      */
     public int controllerMoveDistance(View chactView) {
-      /*  int betweenWidth = ScreenUtils.getScreenWidth(this)-chactView.getWidth() - ScreenUtils.getScreenWidth(this)/2;
-        Log.i("xbl", "onTouchEvent: ScreenUtils.getScreenWidth(this)"+ ScreenUtils.getScreenWidth(this) +"chactView"+chactView.getWidt*/
         return chactView.getWidth() / 2;
     }
 
