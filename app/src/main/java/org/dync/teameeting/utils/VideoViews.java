@@ -109,14 +109,14 @@ public class VideoViews implements View.OnTouchListener{
             mVoiceView.setImageResource(R.drawable.mic_muted);
             mVoiceView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
             ViewGroup.LayoutParams layoutParamsVoice = new RelativeLayout.LayoutParams(width,height);
-            mParentLayout.addView(mVoiceView,layoutParamsVoice);
+            mParentLayout.addView(mVoiceView,1,layoutParamsVoice);
             mVoiceView.setVisibility(View.GONE);
 
             mVideoView = new ImageView(mContent);
             mVideoView.setImageResource(R.drawable.video_close_small);
             mVideoView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
             ViewGroup.LayoutParams layoutParamsVideo = new RelativeLayout.LayoutParams(width,height);
-            mParentLayout.addView(mVideoView,layoutParamsVideo);
+            mParentLayout.addView(mVideoView,1,layoutParamsVideo);
             mVideoView.setVisibility(View.GONE);
 
         }

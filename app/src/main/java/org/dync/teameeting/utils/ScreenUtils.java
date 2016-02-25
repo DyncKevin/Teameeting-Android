@@ -154,7 +154,7 @@ public class ScreenUtils
     }
 
     /**
-     * 判断是否为平板
+     * judge  isPad
      *
      * @return
      */
@@ -170,7 +170,7 @@ public class ScreenUtils
 
         int dens = dm.densityDpi;
         double screenInches = diagonal / (double) dens;
-        if (screenInches>6.0)
+        if (screenInches>=7.0)
         {
             return true;
         }

@@ -57,7 +57,10 @@ import org.json.JSONObject;
 import org.webrtc.VideoTrack;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import cn.pedant.SweetAlert.SweetAlertDialog;
 import de.greenrobot.event.EventBus;
@@ -131,7 +134,8 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
 
     private VideoViews mVideoView;
     private String mPublishId;
-    private boolean isSendMain = false;
+    private HashMap<String,Boolean> mVoiceSetting =new HashMap<String, Boolean>();
+    private HashMap<String,Boolean> mVideoSetting =new HashMap<String, Boolean>();
 
     private Handler mUiHandler = new Handler() {
         public void handleMessage(Message msg) {
@@ -833,6 +837,35 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
         }, 1500);
     }
 
+    /**
+     * updateImageFlag
+     */
+    private void updateImageFlag(){
+
+        Iterator<Map.Entry<String, Boolean>> iterator = mVideoSetting.entrySet().iterator();
+
+        while(iterator.hasNext()){
+            Map.Entry<String,Boolean> entry = iterator.next();
+            String publishId = entry.getKey();
+            Boolean videoFlag = entry.getValue();
+            mVideoView.updateRemoteVideoImage(publishId,videoFlag);
+        }
+
+
+        iterator = mVoiceSetting.entrySet().iterator();
+
+        while(iterator.hasNext()){
+            Map.Entry<String,Boolean> entry = iterator.next();
+            String publishId = entry.getKey();
+            Boolean voiceFlag = entry.getValue();
+            mVideoView.updateRemoteVoiceImage(publishId,voiceFlag);
+        }
+
+
+
+    }
+    
+
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
@@ -892,8 +925,11 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
     @Override
     public void onRtcOpenRemoteRender(String peerId, VideoTrack remoteTrack) {
         mVideoView.OpenRemoteRender(peerId, remoteTrack);
-        if (mDebug)
+
+        if (mDebug) {
             Log.e(TAG, "onRtcOpenRemoteRender: " + peerId);
+        }
+        updateImageFlag();
     }
 
     @Override
@@ -970,18 +1006,6 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
             Log.e(TAG, "onRequesageMsg: " + " mAnyM2Mutlier = = null ");
     }
 
-    private void mcsendtags_talk(String message, String name) {
-        ChatMessage to = new ChatMessage(Type.INPUT, message, name, System.currentTimeMillis() + "");
-        mDatas.add(to);
-        mAdapter.notifyDataSetChanged();
-        mChatView.setSelection(mDatas.size() - 1);
-        mMsg.setText("");
-        if (mMessageShowFlag) {
-            leaveMessageDealWith();
-            //addAutoView(message, name);
-        }
-    }
-
     private void mcsendtags_audioset(String message) {
         if (message != null) {
             try {
@@ -989,10 +1013,13 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
                 String media = json.getString("Media");
                 String publishId = json.getString("PublishId");
                 Log.e(TAG, "onRequesageMsg: media " + media + " publishId " + publishId);
+
                 if (media.equals("Open")) {
                     mVideoView.updateRemoteVoiceImage(publishId, true);
+                    mVoiceSetting.put(publishId,true);
                 } else if (media.equals("Close")) {
-                    mVideoView.updateRemoteVoiceImage(publishId, false);
+                    mVideoView.updateRemoteVoiceImage(publishId, true);
+                    mVoiceSetting.put(publishId,false);
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -1009,15 +1036,31 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
                 String publishId = json.getString("PublishId");
                 Log.e(TAG, "onRequesageMsg: media " + media + " publishId " + publishId);
                 if (media.equals("Open")) {
-                    mVideoView.updateRemoteVideoImage(publishId, true);
+                    mVideoView.updateRemoteVoiceImage(publishId, true);
+                    mVideoSetting.put(publishId,true);
                 } else if (media.equals("Close")) {
-                    mVideoView.updateRemoteVideoImage(publishId, false);
+                    mVideoView.updateRemoteVoiceImage(publishId, true);
+                    mVideoSetting.put(publishId,false);
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
     }
+
+    private void mcsendtags_talk(String message, String name) {
+        ChatMessage to = new ChatMessage(Type.INPUT, message, name, System.currentTimeMillis() + "");
+        mDatas.add(to);
+        mAdapter.notifyDataSetChanged();
+        mChatView.setSelection(mDatas.size() - 1);
+        mMsg.setText("");
+        if (mMessageShowFlag) {
+            leaveMessageDealWith();
+            //addAutoView(message, name);
+        }
+    }
+
+
 
     private void netWorkTypeStart(int type) {
         if (type == NetType.TYPE_NULL.ordinal()) {

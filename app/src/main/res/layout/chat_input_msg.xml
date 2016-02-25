@@ -3,55 +3,55 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:paddingLeft="20dp"
+    android:paddingLeft="30dp"
     android:paddingTop="@dimen/chat_padding_top">
 
     <LinearLayout
         android:id="@+id/ll_chat_layout"
-        android:layout_width="0dp"
+        android:layout_width="250dp"
         android:layout_height="wrap_content"
-        android:layout_weight="3"
         android:background="@color/white"
         android:orientation="vertical"
-        android:padding="10dp">
+        android:padding="15dp" >
 
         <TextView
             android:id="@+id/tv_chat_content"
-            style="@style/chat_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:lineSpacingExtra="8dp"
-            android:text="干嘛呢！ 吃饭了吗？ " />
+            android:text="干嘛呢！ 吃饭了吗？ "
+            android:textColor="@color/black"
+            android:textSize="17sp" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="15dp"
-            android:orientation="horizontal">
-
-            <TextView
-
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
-
-            </TextView>
+            android:orientation="horizontal" >
 
             <TextView
                 android:id="@+id/tv_send_name"
-                style="@style/chat_time_name"
-                android:text="-卡卡西-   " />
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="-卡卡西-   "
+                android:textSize="14sp"
+                android:textColor="@color/grey" />
 
             <TextView
                 android:id="@+id/tv_send_time"
-                style="@style/chat_time_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_marginLeft="10dp"
-                android:text="27秒前" />
+                android:text="27秒前"
+                android:textSize="14sp"
+                android:textColor="@color/grey" />
         </LinearLayout>
     </LinearLayout>
 
-    <View
+<!--    <View
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="2"
-        android:background="@color/transparent" />
+        android:layout_weight="1"
+        android:background="@color/transparent" />-->
 
 </LinearLayout>
