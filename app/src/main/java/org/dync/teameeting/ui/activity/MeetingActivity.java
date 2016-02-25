@@ -54,13 +54,10 @@ import org.dync.teameeting.widgets.ReFlashListView;
 import org.dync.teameeting.widgets.RoomControls;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.webrtc.StatsReport;
 import org.webrtc.VideoTrack;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import cn.pedant.SweetAlert.SweetAlertDialog;
 import de.greenrobot.event.EventBus;
@@ -85,15 +82,9 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
     private RelativeLayout mTopbarLayout, mParentLayout;
     private ImageButton mVoiceButton, mCameraButton, mHangUpButton,
             mSwitchCameraButton, mCameraOffButton;
-    private boolean mMeetingCameraFlag = true, mMeetingCameraOffFlag = true,
-            mMeetingVideoFlag = true, mMeetingVoiceFlag = true;
+    private boolean mMeetingCameraFlag = true, mMeetingCameraOffFlag = true, mMeetingVoiceFlag = true;
 
     private TextView mTvRoomName;
-
-    private String mBsNow, mBsBefore;
-
-    double mTsNow, mTsBefore;
-    private String mBitrate;
 
     private PopupWindowCustom mPopupWindowCustom;
     private ShareHelper mShareHelper;
@@ -113,13 +104,13 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
     private TextView mTvRemind;
     private TextView mTvMessageCount;
     private String mUserId;
-    private final String mPass = TeamMeetingApp.getmSelfData().getAuthorization();
     private boolean mMessageShowFlag = true;
     private TMMsgSender mMsgSender;
     private int mMessagePageNum = 1;
 
     private SweetAlertDialog mNetErrorSweetAlertDialog;
     private int mNotifTags;
+    private Message closeMsg = null;
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
@@ -140,6 +131,7 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
 
     private VideoViews mVideoView;
     private String mPublishId;
+    private boolean isSendMain = false;
 
     private Handler mUiHandler = new Handler() {
         public void handleMessage(Message msg) {
@@ -185,14 +177,21 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
 
     };
 
+    public static MeetingActivity instance = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        Log.e(TAG, "onCreate:123 ");
+        instance = this;
         initView();
         inintData();
-    }
 
+        List<String> activityList = TeamMeetingApp.getActivityList();
+        activityList.add(0, mMeetingId);
+        if (mDebug)
+            Log.e(TAG, "onStart:存储Id " + mMeetingId);
+    }
 
     private void inintData() {
 
@@ -202,8 +201,7 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
 
         mNetErrorSweetAlertDialog = DialogHelper.createNetErroDilaog(this, sweetClickListener);
 
-        mIMM = (InputMethodManager) MeetingActivity.this
-                .getSystemService(MainActivity.INPUT_METHOD_SERVICE);
+        mIMM = (InputMethodManager) MeetingActivity.this.getSystemService(MainActivity.INPUT_METHOD_SERVICE);
 
         mAnyM2Mutlier = new AnyrtcM2Mutlier(this, this);
         mVideoView = new VideoViews((GLSurfaceView) findViewById(R.id.glview_call), mParentLayout, mCloseVoice, mCloseVideo, this);
@@ -395,6 +393,7 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
         super.onConfigurationChanged(newConfig);
     }
 
+
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
 
@@ -561,6 +560,7 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
      */
     private void msgSenderLeave() {
         int code = mMsgSender.TMOptRoom(JMClientType.MCCMD_LEAVE, mMeetingId, mRname, "");
+        finish();
         if (code >= 0) {
             if (mDebug) {
                 Log.e(TAG, "TMLeaveRoom Successed");
@@ -569,7 +569,6 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
             Log.e(TAG, "TMLeaveRoom Failed");
         }
 
-        finish();
     }
 
     /**
@@ -577,9 +576,6 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
      */
 
     private void videoSetting() {
-
-        //mRtkClient.setLocalVideoDisabled();
-
         if (!mMeetingCameraOffFlag) {
             mAnyM2Mutlier.SetLocalVideoEnabled(true);
             mCameraButton.setImageResource(R.drawable.btn_camera_on);
@@ -654,8 +650,7 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
             mVideoView.updateLocalVideoImage(false);
         }
 
-        mCameraButton
-                .setImageResource(R.drawable.btn_camera_off_select);
+        mCameraButton.setImageResource(R.drawable.btn_camera_off_select);
         mMettingAnim.rotationOrApaha(mCameraButton, mMeetingCameraFlag);
         mMettingAnim.translationAlphaAnimator(mSwitchCameraButton, 0,
                 (mLeftDistanceCameraBtn - mLeftDistanceHangUpBtn), 300,
@@ -735,17 +730,14 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
     private void sendMessageChat() {
         final String pushMsg = mMsg.getText().toString();
         if (TextUtils.isEmpty(pushMsg)) {
-            Toast.makeText(this, R.string.str_content_empty, Toast.LENGTH_SHORT)
-                    .show();
+            Toast.makeText(this, R.string.str_content_empty, Toast.LENGTH_SHORT).show();
             return;
         }
 
         if (mMsgSender.TMConnStatus() != JMClientType.CSCONNECTED) {
-            Toast.makeText(this, R.string.str_message_server_not_connect, Toast.LENGTH_SHORT)
-                    .show();
+            Toast.makeText(this, R.string.str_message_server_not_connect, Toast.LENGTH_SHORT).show();
             return;
         }
-
 
         ChatMessage to = new ChatMessage(Type.OUTPUT, pushMsg, "name", System.currentTimeMillis() + "");
         mDatas.add(to);
@@ -770,17 +762,19 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
      * leaveMessageDealWith
      */
     private void leaveMessageDealWith() {
-
         String leaveMessageCount = CRUDChat.selectChatList(MeetingActivity.this, mMeetingId).size() + "";
         if (mDebug) {
             Log.e(TAG, "leaveMessageDealWith: leaveMessageCount " + leaveMessageCount);
         }
         if (mTvMessageCount.getVisibility() == View.GONE && !leaveMessageCount.equals("0")) {
             mTvMessageCount.setVisibility(View.VISIBLE);
-
         }
-
         mTvMessageCount.setText(leaveMessageCount);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
 
 
     }
@@ -794,23 +788,33 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
     @Override
     public void onResume() {
         super.onResume();
+        Log.e(TAG, "onResume: ");
         mAnyM2Mutlier.OnResume();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
     }
 
     @Override
     protected void onDestroy() {
         // TODO Auto-generated method stub
-        super.onDestroy();
 
+        Log.e(TAG, "onDestroy: ");
+        List<String> activityList = TeamMeetingApp.getActivityList();
+        activityList.clear();
         mVideoView.CloseLocalRender();
-
         {// Close all
             if (mAnyM2Mutlier != null) {
                 mAnyM2Mutlier.Destroy();
                 mAnyM2Mutlier = null;
             }
         }
-        EventBus.getDefault().unregister(this);
+
+
+        super.onDestroy();
     }
 
     /**
@@ -829,78 +833,6 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
         }, 1500);
     }
 
-
-    /**
-     * get the Frame Rate, Actual Bitrate and Remote Candidate Type from report
-     *
-     * @param reports the video report
-     */
-    private void updateEncoderStatistics(StatsReport[] reports) {
-        String fps = null;
-        String targetBitrate = null;
-        String actualBitrate = null;
-        String recvByte = null;
-        String sendByte = null;
-        String bytesReceived;
-        String reveivedHeight;
-        Double reveivedTime;
-        for (StatsReport report : reports) {
-
-            bytesReceived = null;
-            reveivedHeight = null;
-            if (report.type.equals("ssrc")) {
-                reveivedTime = report.timestamp;
-                Map<String, String> reportMap = new HashMap<String, String>();
-
-                for (StatsReport.Value value : report.values) {
-                    reportMap.put(value.name, value.value);
-
-                    if (value.name.equals("googFrameHeightReceived")) {
-                        reveivedHeight = value.value;
-                        if (bytesReceived != null) {
-                            break;
-                        }
-                    }
-
-                    if (value.name.equals("bytesReceived")) {
-                        bytesReceived = value.value;
-
-                    }
-                }
-
-                if (bytesReceived != null && reveivedHeight != null) {
-                    mBsNow = bytesReceived;
-                    mTsNow = reveivedTime;
-
-                    if (mBsBefore == null || mTsBefore == 0.0) {
-                        // Skip this round
-                        mBsBefore = mBsNow;
-                        mTsBefore = mTsNow;
-                    } else {
-                        // Calculate bitrate
-
-                        long tempBit = (Integer.parseInt(mBsNow) - Integer
-                                .parseInt(mBsBefore));
-                        if (tempBit < 0)
-                            continue;
-                        Double tempTime = (mTsNow - mTsBefore);
-                        // Log.e(TAG,
-                        // " tempBit "+tempBit+" tempTime "+tempTime);
-                        long bitRate = Math.round(tempBit * 8 / tempTime);
-                        mBitrate = bitRate + "KB/S";
-
-                        mBsBefore = mBsNow;
-                        mTsBefore = mTsNow;
-                        mUiHandler.sendEmptyMessage(0x01);
-                    }
-                }
-
-            }
-
-        }
-
-    }
-
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
@@ -912,8 +844,6 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
      */
     @Override
     public void OnRtcPublishOK(String publishId, String rtmpUrl, String hlsUrl) {
-        //mAnyM2Mutlier.Subscribe(publishId, true);
-        // Toast.makeText(this, "PublishOK id: " + publishId, Toast.LENGTH_SHORT).show();
         int code = mMsgSender.TMNotifyMsg(mMeetingId, mRname, JMClientType.MCSENDTAGS_SUBSCRIBE, publishId);
         mPublishId = publishId;
         if (mDebug) {
@@ -987,100 +917,106 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
         if (mDebug) {
             Log.e(TAG, "onRequesageMsg: " + requestMsg.toString());
         }
-
         int tags = requestMsg.getTags();
         final String message = requestMsg.getCont();
-        final String name = requestMsg.getFrom();
+        final String name = requestMsg.getNname();
         String from = requestMsg.getFrom();
-
         if (mDebug) {
-            Log.e(TAG, "onRequesageMsg: " + "tags " + tags + " message " + message + " name " + name
-                    + " from " + from);
+            Log.e(TAG, "onRequesageMsg: " + "tags " + tags + " message " + message + " name " + name + " from " + from);
         }
-        //int messagetype = requestMsg.getMtype();
-        //int cmd = requestMsg.getCmd();
 
+        MessageTagsDistribute(tags, message, name);
+    }
+
+    private void MessageTagsDistribute(int tags, String message, String name) {
         switch (tags) {
             case JMClientType.MCSENDTAGS_TALK://1
-
-                ChatMessage to = new ChatMessage(Type.INPUT, message, name, System.currentTimeMillis() + "");
-                mDatas.add(to);
-                mAdapter.notifyDataSetChanged();
-                mChatView.setSelection(mDatas.size() - 1);
-                mMsg.setText("");
-                if (mMessageShowFlag) {
-                    leaveMessageDealWith();
-                    //addAutoView(message, name);
-                }
+                mcsendtags_talk(message, name);
                 break;
-
             case JMClientType.MCSENDTAGS_ENTER://2
                 // mTvRemind.setVisibility(View.GONE);
                 break;
-
             case JMClientType.MCSENDTAGS_LEAVE://3
                 break;
-
             case JMClientType.MCSENDTAGS_SUBSCRIBE://4
-                MCSENDTAGS_SUBSCRIBE = true;
-                mTvRemind.setVisibility(View.GONE);
-                if (mAnyM2Mutlier != null)
-                    mAnyM2Mutlier.Subscribe(message, true);
-                else if (mDebug)
-                    Log.e(TAG, "onRequesageMsg: " + " mAnyM2Mutlier = = null ");
+                mcsendtags_subscribe(message);
                 break;
-
             case JMClientType.MCSENDTAGS_UNSUBSCRIBE://5
-                if (mAnyM2Mutlier != null) {
-                    mVideoView.RemoveRemoteRender(message);
-                    mAnyM2Mutlier.UnSubscribe(message);
-                } else if (mDebug)
-                    Log.e(TAG, "onRequesageMsg: " + " mAnyM2Mutlier = = null ");
+                mcsendtags_unsubscribe(message);
                 break;
-
-
             case JMClientType.MCSENDTAGS_AUDIOSET://6
-                if (message != null) {
-                    try {
-                        JSONObject json = new JSONObject(message);
-                        String media = json.getString("Media");
-                        String publishId = json.getString("PublishId");
-                        Log.e(TAG, "onRequesageMsg: media " + media + " publishId " + publishId);
-                        if (media.equals("Open")) {
-                            mVideoView.updateRemoteVoiceImage(publishId, true);
-                        } else if (media.equals("Close")) {
-                            mVideoView.updateRemoteVoiceImage(publishId, false);
-                        }
-
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-
-                }
-
+                mcsendtags_audioset(message);
                 break;
             case JMClientType.MCSENDTAGS_VIDEOSET://7
-                if (message != null) {
-                    try {
-                        JSONObject json = new JSONObject(message);
-                        String media = json.getString("Media");
-                        String publishId = json.getString("PublishId");
-                        Log.e(TAG, "onRequesageMsg: media " + media + " publishId " + publishId);
-                        if (media.equals("Open")) {
-                            mVideoView.updateRemoteVideoImage(publishId, true);
-                        } else if (media.equals("Close")) {
-                            mVideoView.updateRemoteVideoImage(publishId, false);
-                        }
-
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-
-                }
+                mcsendtags_videoset(message);
                 break;
         }
+    }
 
+    private void mcsendtags_subscribe(String message) {
+        MCSENDTAGS_SUBSCRIBE = true;
+        mTvRemind.setVisibility(View.GONE);
+        if (mAnyM2Mutlier != null)
+            mAnyM2Mutlier.Subscribe(message, true);
+        else if (mDebug)
+            Log.e(TAG, "onRequesageMsg: " + " mAnyM2Mutlier = = null ");
+    }
 
+    private void mcsendtags_unsubscribe(String message) {
+        if (mAnyM2Mutlier != null) {
+            mVideoView.RemoveRemoteRender(message);
+            mAnyM2Mutlier.UnSubscribe(message);
+        } else if (mDebug)
+            Log.e(TAG, "onRequesageMsg: " + " mAnyM2Mutlier = = null ");
+    }
+
+    private void mcsendtags_talk(String message, String name) {
+        ChatMessage to = new ChatMessage(Type.INPUT, message, name, System.currentTimeMillis() + "");
+        mDatas.add(to);
+        mAdapter.notifyDataSetChanged();
+        mChatView.setSelection(mDatas.size() - 1);
+        mMsg.setText("");
+        if (mMessageShowFlag) {
+            leaveMessageDealWith();
+            //addAutoView(message, name);
+        }
+    }
+
+    private void mcsendtags_audioset(String message) {
+        if (message != null) {
+            try {
+                JSONObject json = new JSONObject(message);
+                String media = json.getString("Media");
+                String publishId = json.getString("PublishId");
+                Log.e(TAG, "onRequesageMsg: media " + media + " publishId " + publishId);
+                if (media.equals("Open")) {
+                    mVideoView.updateRemoteVoiceImage(publishId, true);
+                } else if (media.equals("Close")) {
+                    mVideoView.updateRemoteVoiceImage(publishId, false);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+        }
+    }
+
+    private void mcsendtags_videoset(String message) {
+        if (message != null) {
+            try {
+                JSONObject json = new JSONObject(message);
+                String media = json.getString("Media");
+                String publishId = json.getString("PublishId");
+                Log.e(TAG, "onRequesageMsg: media " + media + " publishId " + publishId);
+                if (media.equals("Open")) {
+                    mVideoView.updateRemoteVideoImage(publishId, true);
+                } else if (media.equals("Close")) {
+                    mVideoView.updateRemoteVideoImage(publishId, false);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private void netWorkTypeStart(int type) {
@@ -1107,7 +1043,6 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
     public void onEventMainThread(Message msg) {
         switch (EventType.values()[msg.what]) {
             case MSG_MESSAGE_RECEIVE:
-
                 break;
             case MSG_GET_MEETING_MSG_LIST_SUCCESS:
                 mUiHandler.sendEmptyMessage(MESSAGE_UPDATE);
@@ -1117,16 +1052,26 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
             case MSG_GET_MEETING_MSG_LIST_FAILED:
                 if (mDebug)
                     Log.e(TAG, "onEventMainThread: " + "MSG_GET_MEETING_MSG_LIST_FAILED");
-
                 break;
             case MSG_NET_WORK_TYPE:
                 if (mDebug)
                     Log.e(TAG, "MSG_NET_WORK_TYPE");
                 int type = msg.getData().getInt("net_type");
                 netWorkTypeStart(type);
+                msgSenderLeave();
                 break;
-
-
+            case MSG_NOTIFICATION_MEETINGID_EQUAL:
+                if (mDebug)
+                    Log.e(TAG, "MSG_NOTIFICATION_MEETINGID_EQUAL");
+                Intent resultIntent = new Intent(this, MeetingActivity.class);
+                startActivity(resultIntent);
+                break;
+            case MSG_NOTIFICATION_MEETING_CLOSE_MAIN:
+                if (mDebug)
+                    Log.e(TAG, "MSG_NOTIFICATION_MEETING_CLOSE_MAIN " + msg.getData().toString());
+                msgSenderLeave();
+                msg.what = EventType.MSG_NOTIFICATION_MEETING_CLOSE.ordinal();
+                EventBus.getDefault().post(msg);
             default:
                 break;
         }

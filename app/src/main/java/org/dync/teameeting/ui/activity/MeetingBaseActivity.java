@@ -59,6 +59,7 @@ public class MeetingBaseActivity extends Activity implements IChatMessageIntefac
 
         registerObserverClinet();
         //startShowMessage();
+        Log.e(TAG, "onCreate: " );
     }
 
     private void registerObserverClinet() {
@@ -83,6 +84,7 @@ public class MeetingBaseActivity extends Activity implements IChatMessageIntefac
 
     };
 
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -96,7 +98,6 @@ public class MeetingBaseActivity extends Activity implements IChatMessageIntefac
 
     public void addAutoView(String msg, String name) {
         MoveDownView();
-
         final LinearLayout showView = (LinearLayout) View.inflate(this, R.layout.text_view, null);
         TextView tvChatContent = (TextView) showView.findViewById(R.id.tv_chat_content);
         TextView tvSendName = (TextView) showView.findViewById(R.id.tv_send_name);
@@ -118,7 +119,6 @@ public class MeetingBaseActivity extends Activity implements IChatMessageIntefac
         mainView.addView(showView);
         tvChatContent.setText(msg);
         tvSendName.setText(name);
-
     }
 
     private void alphaAnimation(final View view,
@@ -147,15 +147,8 @@ public class MeetingBaseActivity extends Activity implements IChatMessageIntefac
             linearLayout.setLayoutParams(layoutParams);
         }
     }
-
-    public void startShowMessage() {
-        isShowMessage = true;
-        // handler.sendEmptyMessage(0);
-    }
-
     public void stopShowMessage() {
         isShowMessage = false;
-        // handler.removeCallbacksAndMessages(null);
     }
 
     /**
@@ -165,7 +158,6 @@ public class MeetingBaseActivity extends Activity implements IChatMessageIntefac
     public int controllerMoveDistance(View chactView) {
         return chactView.getWidth() / 2;
     }
-
 
     @Override
     public void onRequesageMsg(ReqSndMsgEntity requestMsg) {

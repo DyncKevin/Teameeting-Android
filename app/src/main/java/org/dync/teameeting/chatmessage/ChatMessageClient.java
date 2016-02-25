@@ -7,6 +7,7 @@ import android.util.Log;
 import com.google.gson.Gson;
 import com.orhanobut.logger.Logger;
 
+import org.dync.teameeting.R;
 import org.dync.teameeting.TeamMeetingApp;
 import org.dync.teameeting.bean.ReqSndMsgEntity;
 import org.dync.teameeting.db.CRUDChat;
@@ -106,15 +107,30 @@ public class ChatMessageClient implements JMClientHelper {
 
     int i = 11111111;
     public void sendPushNotifiaction(ReqSndMsgEntity reqSndMsgEntity) {
+
+        int tags = 0;
+        String title;
+        if (reqSndMsgEntity.getTags() == JMClientType.MCSENDTAGS_TALK) {
+            tags = 1;
+            title = context.getString(R.string.notifi_str_new_message) + reqSndMsgEntity.getCont();
+        } else if (reqSndMsgEntity.getTags() == JMClientType.MCSENDTAGS_ENTER) {
+            tags = 2;
+            title = context.getString(R.string.notifi_str_enter_room) + reqSndMsgEntity.getRoom();
+        } else {
+            return;
+        }
+
         JPushLocalNotification ln = new JPushLocalNotification();
         ln.setBuilderId(0);
-        ln.setContent("Teameeting");
-        ln.setTitle("有人发消息来了");
+        ln.setTitle("Teameeting");
+        ln.setContent(title);
         i++;
         ln.setNotificationId(i);
+
         Map<String, Object> map = new HashMap<String, Object>();
-        map.put("tags", 1);
+        map.put("tags", tags);
         map.put("roomid", reqSndMsgEntity.getRoom());
+
         JSONObject json = new JSONObject(map);
         ln.setExtras(json.toString());
         JPushInterface.addLocalNotification(context.getApplicationContext(), ln);

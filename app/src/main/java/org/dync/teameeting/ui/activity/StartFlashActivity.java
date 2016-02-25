@@ -37,7 +37,6 @@ import cn.jpush.android.api.TagAliasCallback;
 import cn.pedant.SweetAlert.SweetAlertDialog;
 import cn.pedant.SweetAlert.SweetAlertDialog.OnSweetClickListener;
 
-
 /**
  * @author zhangqilu org.dync.teammeeting.activity StartFlashActivity create at
  *         2015-12-11 17:00:42
@@ -125,7 +124,6 @@ public class StartFlashActivity extends BaseActivity {
                 case 0:
                     logs = "Set tag and alias success";
                     Log.i(JPUSH, logs);
-
                     break;
 
                 case 6002:
@@ -145,7 +143,6 @@ public class StartFlashActivity extends BaseActivity {
                     logs = "Failed with errorCode = " + code;
                     Log.e(JPUSH, logs);
             }
-
             showToast(logs, getApplicationContext());
         }
     };
@@ -167,19 +164,16 @@ public class StartFlashActivity extends BaseActivity {
                     Log.i(JPUSH, logs);
 
                     if (isConnected(getApplicationContext())) {
-                        mHandler.sendMessageDelayed(mHandler.obtainMessage(
-                                MSG_SET_TAGS, tags), 1000 * 60);
+                        mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_SET_TAGS, tags), 1000 * 60);
                     } else {
                         Log.i(JPUSH, "No network");
                     }
-
                     break;
 
                 default:
                     logs = "Failed with errorCode = " + code;
                     Log.e(JPUSH, logs);
             }
-
             showToast(logs, getApplicationContext());
         }
     };
@@ -215,9 +209,7 @@ public class StartFlashActivity extends BaseActivity {
     private void initData() {
         context = this;
         mNetErrorSweetAlertDialog = DialogHelper.createNetErroDilaog(this, sweetClickListener);
-
         mUserid = TeamMeetingApp.getTeamMeetingApp().getDevId();
-
         Animation loadAnimation = AnimationUtils.loadAnimation(this, R.anim.splash);
         loadAnimation.setAnimationListener(mAnimationListener);
         mView.setAnimation(loadAnimation);
@@ -245,7 +237,7 @@ public class StartFlashActivity extends BaseActivity {
                 mUrlMeetingId = json.getString("roomid");
                 mTags = json.getInt("tags");
                 if (mDebug) {
-                    Log.e(TAG, "meetingId " + mUrlMeetingId);
+                    Log.e(TAG, "meetingId" + mUrlMeetingId);
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -265,8 +257,7 @@ public class StartFlashActivity extends BaseActivity {
         }
 
         if (mMsgSender == null) {
-            mMsgSender = new TMMsgSender(this,
-                    TeamMeetingApp.getmChatMessageClient());
+            mMsgSender = new TMMsgSender(this, TeamMeetingApp.getmChatMessageClient());
         }
 
         TeamMeetingApp.getTeamMeetingApp().setmMsgSender(mMsgSender);

@@ -29,6 +29,8 @@ public class ChatMessage {
      */
     private String username;
 
+
+
     public ChatMessage(Type type, String msg, String name, String dateStr) {
         super();
         this.type = type;

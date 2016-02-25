@@ -21,6 +21,9 @@ import org.dync.teameeting.receiver.NetWorkReceiver;
 import org.dync.teameeting.sdkmsgclient.msgs.TMMsgSender;
 import org.dync.teameeting.utils.ScreenUtils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import cn.jpush.android.api.JPushInterface;
 
 public class TeamMeetingApp extends Application {
@@ -36,6 +39,12 @@ public class TeamMeetingApp extends Application {
     private NetWorkReceiver mNetReceiver;
     public static boolean isPad = false;
     private static TMMsgSender mMsgSender;
+
+    public static List<String> activityList = new ArrayList<String>();
+
+    public static List<String> getActivityList() {
+        return activityList;
+    }
 
     public static TeamMeetingApp getTeamMeetingApp() {
         return mTeamMeetingApp;

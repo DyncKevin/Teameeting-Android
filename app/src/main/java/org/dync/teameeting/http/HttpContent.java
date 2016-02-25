@@ -1,18 +1,16 @@
 package org.dync.teameeting.http;
 
-import android.util.Log;
-
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 
 /**
  * Created by Zlang on 2015/12/25 00:25.
- *
+ * <p/>
  * net Content
  */
 public class HttpContent {
-   //public static final String NODE_URL = "http://123.59.68.21:8055/";
+    //public static final String NODE_URL = "http://123.59.68.21:8055/";
     public static final String NODE_URL = "http://192.168.7.49:8055/";//123.59.68.21:8055
 
     private static AsyncHttpClient client = new AsyncHttpClient();
