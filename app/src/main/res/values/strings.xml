@@ -87,4 +87,8 @@
     <string name="dialog_exit">退出</string>
     <string name="toast_seeting_success">设置成功</string>
     <string name="chat_output_name">我</string>
+
+    <string name="notifi_str_new_message">有新消息 :</string>
+    <string name="notifi_str_enter_room">有人进入 :</string>
+
 </resources>

@@ -9,7 +9,7 @@
     <View
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
+        android:layout_weight="2"
         android:background="@color/transparent" />
 
     <LinearLayout
@@ -19,16 +19,14 @@
         android:layout_weight="3"
         android:background="@color/orange_yellow"
         android:orientation="vertical"
-        android:padding="15dp">
+        android:padding="10dp">
 
         <TextView
             android:id="@+id/tv_chat_content"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            style="@style/chat_message"
             android:lineSpacingExtra="8dp"
             android:text="干嘛呢！ 吃饭了吗？ "
-            android:textColor="@color/ivory"
-            android:textSize="17sp" />
+            android:textColor="@color/ivory" />
 
         <LinearLayout
 
@@ -38,33 +36,27 @@
             android:orientation="horizontal">
 
             <TextView
-
-
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-
                 android:textColor="@color/gainsboro"
                 android:textSize="12dp" />
 
             <TextView
 
                 android:id="@+id/tv_send_name"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="-卡卡西-   "
-                android:textColor="@color/gainsboro"
-                android:textSize="12dp" />
+                style="@style/chat_time_name"
+                android:textColor="@color/gainsboro" />
 
             <TextView
 
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="10dp"
                 android:id="@id/tv_send_time"
+                style="@style/chat_time_name"
+                android:layout_marginLeft="10dp"
                 android:text="27秒前"
                 android:textColor="@color/gainsboro"
-                android:textSize="12dp" />
+
+                />
         </LinearLayout>
     </LinearLayout>
 

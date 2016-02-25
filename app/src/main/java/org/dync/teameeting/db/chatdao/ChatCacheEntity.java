@@ -84,6 +84,13 @@ public class ChatCacheEntity implements Serializable {
         this.sendtime = sendtime;
     }
 
+    public Boolean getIsread() {
+        return isread;
+    }
+
+    public void setIsread(Boolean isread) {
+        this.isread = isread;
+    }
 
     @Override
     public String toString() {
@@ -96,12 +103,5 @@ public class ChatCacheEntity implements Serializable {
                 '}';
     }
 
-    public Boolean getIsread() {
-        return isread;
-    }
-
-    public void setIsread(Boolean isread) {
-        this.isread = isread;
-    }
 
 }

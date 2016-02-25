@@ -5,28 +5,6 @@ package org.dync.teameeting.bean;
  */
 public class ReqSndMsgEntity {
 
-
-    /**
-     * mtype : 3
-     * messagetype : 1
-     * signaltype : 2
-     * cmd : 3
-     * action : 1
-     * tags : 1
-     * type : 1
-     * nmem : 0
-     * ntime : 1454049239300
-     * mseq : 27
-     * from : 93fe87d9f42226d9
-     * room : 400000000774
-     * to :
-     * cont : 13
-     * pass : 67924b97f3995fbf433a365ccdd5c047d172be7dfd89cdc53c409c29f56aa998
-     * nname : nick name
-     * rname : room name
-     * code : 0
-     */
-
     private int mtype;
     private int messagetype;
     private int signaltype;
