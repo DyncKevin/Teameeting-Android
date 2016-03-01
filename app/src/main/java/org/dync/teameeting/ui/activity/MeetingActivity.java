@@ -114,6 +114,8 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
     private SweetAlertDialog mNetErrorSweetAlertDialog;
     private int mNotifTags;
     private Message closeMsg = null;
+    private RelativeLayout mRlChatButton;
+    private TextView tvDuoyu;
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
@@ -134,8 +136,8 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
 
     private VideoViews mVideoView;
     private String mPublishId;
-    private HashMap<String,Boolean> mVoiceSetting =new HashMap<String, Boolean>();
-    private HashMap<String,Boolean> mVideoSetting =new HashMap<String, Boolean>();
+    private HashMap<String, Boolean> mVoiceSetting = new HashMap<String, Boolean>();
+    private HashMap<String, Boolean> mVideoSetting = new HashMap<String, Boolean>();
 
     private Handler mUiHandler = new Handler() {
         public void handleMessage(Message msg) {
@@ -266,11 +268,12 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
         mParentLayout = (RelativeLayout) findViewById(R.id.meet_parent);
         mTopbarLayout = (RelativeLayout) findViewById(R.id.rl_meeting_topbar);
         mControlLayout = (RoomControls) findViewById(R.id.rl_meeting_control);
-
+        tvDuoyu = (TextView) findViewById(R.id.tv_duoyu);
         mChatButton = (ImageButton) findViewById(R.id.imgbtn_chat);
         mInviteButton = (ImageButton) findViewById(R.id.imgbtn_invite);
         mTvRoomName = (TextView) findViewById(R.id.tv_room_name);
         mTvRemind = (TextView) findViewById(R.id.tv_remind);
+        mRlChatButton = (RelativeLayout) findViewById(R.id.rl_chat_bottom);
 
         mCloseVideo = (ImageView) findViewById(R.id.iv_close_video);
         mCloseVoice = (ImageView) findViewById(R.id.iv_close_voice);
@@ -334,7 +337,9 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
                 break;
         }
         return super.onTouchEvent(event);
+
     }
+
 
     /**
      * chataShow
@@ -346,20 +351,23 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
         int showTime = 500;
         if (moveX > 0 && !mChatLayoutShow) {
             mChatLayoutShow = true;
-            Anims.animateRightMarginTo(mChatLayout, 0, mChatLayout.getWidth(), showTime, Anims.ACCELERATE);
+
+            Anims.animateRightMarginTo(mChatLayout, 0, mChatLayout.getWidth() - tvDuoyu.getWidth(), showTime, Anims.ACCELERATE);
             Anims.animateRightMarginTo(mControlLayout, 0, controllMove, showTime, Anims.ACCELERATE);
             Anims.animateRightMarginTo(mTvRemind, 0, controllMove, showTime, Anims.ACCELERATE);
             // Anims.animateRightMarginTo(mTvRoomName, 0, controllMove, showTime, Anims.ACCELERATE);
 
         } else if (moveX < 0 && mChatLayoutShow) {
             mChatLayoutShow = false;
-            Anims.animateRightMarginTo(mChatLayout, mChatLayout.getWidth(), 0, showTime, Anims.ACCELERATE);
+
+            Anims.animateRightMarginTo(mChatLayout, mChatLayout.getWidth() - tvDuoyu.getWidth(), 0, showTime, Anims.ACCELERATE);
             Anims.animateRightMarginTo(mControlLayout, controllMove, 0, showTime, Anims.ACCELERATE);
             Anims.animateRightMarginTo(mTvRemind, controllMove, 0, showTime, Anims.ACCELERATE);
             //Anims.animateRightMarginTo(mTvRoomName, controllMove, 0, showTime, Anims.ACCELERATE);
             //delete db  data
             CRUDChat.deleteByMeetingId(MeetingActivity.this, mMeetingId);
-            mTvMessageCount.setVisibility(View.GONE);
+            mTvMessageCount.setVisibility(View.INVISIBLE);
+
         }
     }
 
@@ -392,8 +400,6 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
 
             mVideoView.onScreenChanged();
         }
-
-
         super.onConfigurationChanged(newConfig);
     }
 
@@ -523,10 +529,10 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
                     break;
 
                 case R.id.imgbtn_chat:
-
                     stopShowMessage();
                     if (TeamMeetingApp.isPad) {
-                        chatLayoutControl(100);
+                        int value = mChatLayoutShow == true ? -100 : 100;
+                        chatLayoutControl(value);
                     } else {
                         mMessageShowFlag = false;
                         mChatLayout.setVisibility(View.VISIBLE);
@@ -816,8 +822,6 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
                 mAnyM2Mutlier = null;
             }
         }
-
-
         super.onDestroy();
     }
 
@@ -840,31 +844,30 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
     /**
      * updateImageFlag
      */
-    private void updateImageFlag(){
+    private void updateImageFlag() {
 
         Iterator<Map.Entry<String, Boolean>> iterator = mVideoSetting.entrySet().iterator();
 
-        while(iterator.hasNext()){
-            Map.Entry<String,Boolean> entry = iterator.next();
+        while (iterator.hasNext()) {
+            Map.Entry<String, Boolean> entry = iterator.next();
             String publishId = entry.getKey();
             Boolean videoFlag = entry.getValue();
-            mVideoView.updateRemoteVideoImage(publishId,videoFlag);
+            mVideoView.updateRemoteVideoImage(publishId, videoFlag);
         }
 
 
         iterator = mVoiceSetting.entrySet().iterator();
 
-        while(iterator.hasNext()){
-            Map.Entry<String,Boolean> entry = iterator.next();
+        while (iterator.hasNext()) {
+            Map.Entry<String, Boolean> entry = iterator.next();
             String publishId = entry.getKey();
             Boolean voiceFlag = entry.getValue();
-            mVideoView.updateRemoteVoiceImage(publishId,voiceFlag);
+            mVideoView.updateRemoteVoiceImage(publishId, voiceFlag);
         }
 
 
-
     }
-    
+
 
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
@@ -1016,10 +1019,10 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
 
                 if (media.equals("Open")) {
                     mVideoView.updateRemoteVoiceImage(publishId, true);
-                    mVoiceSetting.put(publishId,true);
+                    mVoiceSetting.put(publishId, true);
                 } else if (media.equals("Close")) {
                     mVideoView.updateRemoteVoiceImage(publishId, true);
-                    mVoiceSetting.put(publishId,false);
+                    mVoiceSetting.put(publishId, false);
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -1037,10 +1040,10 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
                 Log.e(TAG, "onRequesageMsg: media " + media + " publishId " + publishId);
                 if (media.equals("Open")) {
                     mVideoView.updateRemoteVoiceImage(publishId, true);
-                    mVideoSetting.put(publishId,true);
+                    mVideoSetting.put(publishId, true);
                 } else if (media.equals("Close")) {
                     mVideoView.updateRemoteVoiceImage(publishId, true);
-                    mVideoSetting.put(publishId,false);
+                    mVideoSetting.put(publishId, false);
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -1059,7 +1062,6 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
             //addAutoView(message, name);
         }
     }
-
 
 
     private void netWorkTypeStart(int type) {
