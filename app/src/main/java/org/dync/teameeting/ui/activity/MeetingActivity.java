@@ -1114,6 +1114,7 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
             case MSG_NOTIFICATION_MEETING_CLOSE_MAIN:
                 if (mDebug)
                     Log.e(TAG, "MSG_NOTIFICATION_MEETING_CLOSE_MAIN " + msg.getData().toString());
+                //Notify start another Meeting
                 msgSenderLeave();
                 msg.what = EventType.MSG_NOTIFICATION_MEETING_CLOSE.ordinal();
                 EventBus.getDefault().post(msg);

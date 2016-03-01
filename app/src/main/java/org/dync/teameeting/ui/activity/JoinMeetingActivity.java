@@ -33,6 +33,7 @@ public class JoinMeetingActivity extends BaseActivity implements View.OnClickLis
     private TMMsgSender mMsgSender;
     private String mMeetingId;
     private String mMeetingName;
+    private String mAnyrtcid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,14 +45,11 @@ public class JoinMeetingActivity extends BaseActivity implements View.OnClickLis
 
     private void inintView() {
         mEtMeetingId = (EditText) findViewById(R.id.et_meeting_id);
-
-
         mIbtnJoinMeeting = (ImageButton) findViewById(R.id.ibtn_join_meeting);
         mIbtnback = (ImageButton) findViewById(R.id.ibtn_back);
         mIbtnback.setOnClickListener(this);
         mIbtnJoinMeeting.setOnClickListener(this);
         mEtMeetingId.setOnEditorActionListener(mOnEditorActionListener);
-
     }
 
 
@@ -77,17 +75,13 @@ public class JoinMeetingActivity extends BaseActivity implements View.OnClickLis
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-
             case R.id.ibtn_back:
                 finish();
                 break;
             case R.id.ibtn_join_meeting:
                 meetingDealWith();
                 break;
-
         }
-
-
     }
 
     TextView.OnEditorActionListener mOnEditorActionListener = new TextView.OnEditorActionListener() {
@@ -116,8 +110,6 @@ public class JoinMeetingActivity extends BaseActivity implements View.OnClickLis
             } else {
                 mNetWork.getMeetingInfo(mMeetingId, JoinActType.JOIN_START_ACTIVITY);
             }
-
-
         } else {
             Toast.makeText(JoinMeetingActivity.this, R.string.str_meeting_id_error, Toast.LENGTH_SHORT).show();
         }
@@ -133,10 +125,35 @@ public class JoinMeetingActivity extends BaseActivity implements View.OnClickLis
         intent.putExtra("meetingId", mMeetingId);
         intent.putExtra("userId", userId);
         intent.putExtra("meetingName", mMeetingName);
+        intent.putExtra("anyrtcid", mAnyrtcid);
         startActivity(intent);
         finish();
     }
 
+    /**
+     * get meetng information success
+     *
+     * @param msg
+     */
+    private void getMeetingInfoSuccess(Message msg) {
+        MeetingListEntity meetingListEntity = TeamMeetingApp.getmSelfData().getMeetingListEntity();
+        int usable = meetingListEntity.getMeetenable();
+        mAnyrtcid = meetingListEntity.getAnyrtcid();
+        mMeetingName = meetingListEntity.getMeetname();
+        switch (usable) {
+            case 0://no
+                Toast.makeText(JoinMeetingActivity.this, R.string.str_meeting_deleted, Toast.LENGTH_SHORT).show();
+                break;
+            case 1://yes
+                if (msg.getData().getString(JoinActType.JOIN_TYPE) == JoinActType.JOIN_START_ACTIVITY) {
+                    mNetWork.insertUserMeetingRoom(getSign(), mMeetingId, JoinActType.JOIN_INSERT_START_ACTIVITY);
+                }
+                break;
+            case 2://private
+                Toast.makeText(JoinMeetingActivity.this, R.string.str_meeting_privated, Toast.LENGTH_SHORT).show();
+                break;
+        }
+    }
 
     @Override
     public void onEventMainThread(Message msg) {
@@ -147,9 +164,7 @@ public class JoinMeetingActivity extends BaseActivity implements View.OnClickLis
                 case MSG_GET_MEETING_INFO_SUCCESS:
                     if (mDebug)
                         Log.e(TAG, "MSG_GET_MEETING_INFO_SUCCESS");
-
                     getMeetingInfoSuccess(msg);
-
                     break;
                 case MSG_GET_MEETING_INFO_FAILED:
                     if (mDebug)
@@ -167,8 +182,8 @@ public class JoinMeetingActivity extends BaseActivity implements View.OnClickLis
                     if (join_insert_type == JoinActType.JOIN_INSERT_START_ACTIVITY) {
                         joinMeeting();
                     }
-
                     break;
+
                 case MSG_INSERT_USER_MEETING_ROOM_FAILED:
                     if (mDebug)
                         Log.e(TAG, "MSG_INSERT_USER_MEETING_ROOM_FAILED");
@@ -182,13 +197,13 @@ public class JoinMeetingActivity extends BaseActivity implements View.OnClickLis
                     if (mDebug)
                         Log.e(TAG, "MSG_NET_WORK_TYPE");
                     int type = msg.getData().getInt("net_type");
-
                     break;
+
                 case MSG_RESPONS_ESTR_NULl:
                     if (mDebug)
                         Log.e(TAG, "MSG_RESPONS_ESTR_NULl");
-
                     break;
+
                 default:
                     break;
             }
@@ -197,22 +212,4 @@ public class JoinMeetingActivity extends BaseActivity implements View.OnClickLis
 
     }
 
-    private void getMeetingInfoSuccess(Message msg) {
-        MeetingListEntity meetingListEntity = TeamMeetingApp.getmSelfData().getMeetingListEntity();
-        int usable = meetingListEntity.getMeetenable();
-        mMeetingName = meetingListEntity.getMeetname();
-        switch (usable) {
-            case 0://no
-                Toast.makeText(JoinMeetingActivity.this, R.string.str_meeting_deleted, Toast.LENGTH_SHORT).show();
-                break;
-            case 1://yes
-                if (msg.getData().getString(JoinActType.JOIN_TYPE) == JoinActType.JOIN_START_ACTIVITY) {
-                    mNetWork.insertUserMeetingRoom(getSign(), mMeetingId, JoinActType.JOIN_INSERT_START_ACTIVITY);
-                }
-                break;
-            case 2://private
-                Toast.makeText(JoinMeetingActivity.this, R.string.str_meeting_privated, Toast.LENGTH_SHORT).show();
-                break;
-        }
-    }
 }
