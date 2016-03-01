@@ -59,7 +59,7 @@ public class MeetingBaseActivity extends Activity implements IChatMessageIntefac
 
         registerObserverClinet();
         //startShowMessage();
-        Log.e(TAG, "onCreate: ");
+        Log.e(TAG, "onCreate: " );
     }
 
     private void registerObserverClinet() {
@@ -147,7 +147,6 @@ public class MeetingBaseActivity extends Activity implements IChatMessageIntefac
             linearLayout.setLayoutParams(layoutParams);
         }
     }
-
     public void stopShowMessage() {
 
     }

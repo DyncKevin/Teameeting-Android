@@ -27,8 +27,8 @@ import android.widget.Toast;
 import com.nineoldandroids.view.ViewPropertyAnimator;
 
 import org.anyrtc.AnyrtcM2Mutlier;
-import org.anyrtc.m2multier.M2MPublisher;
-import org.anyrtc.m2multier.M2MultierEvents;
+import org.anyrtc.AnyrtcMeet;
+import org.anyrtc.common.MeetEvents;
 import org.dync.teameeting.R;
 import org.dync.teameeting.TeamMeetingApp;
 import org.dync.teameeting.bean.ChatMessage;
@@ -70,7 +70,7 @@ import de.greenrobot.event.EventBus;
  *         2015-12-11 5:02:32
  */
 
-public class MeetingActivity extends MeetingBaseActivity implements M2MultierEvents, ReFlashListView.IReflashListener {
+public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, ReFlashListView.IReflashListener {
     // Local preview screen position before call is connected.
     private static final boolean mDebug = TeamMeetingApp.mIsDebug;
     private static final String TAG = "MeetingActivity";
@@ -78,7 +78,8 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
     private static final int ANIMATOR_TANSLATION = 0X01;
     private static final int MESSAGE_UPDATE = 0X02;
     boolean MCSENDTAGS_SUBSCRIBE = false;
-    private AnyrtcM2Mutlier mAnyM2Mutlier;
+   // private AnyrtcM2Mutlier mAnyM2Mutlier;
+    private AnyrtcMeet mAnyM2Mutlier;
     private MeetingAnim mMettingAnim;
     private ImageButton mChatButton, mInviteButton;
     private RoomControls mControlLayout;
@@ -136,8 +137,8 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
 
     private VideoViews mVideoView;
     private String mPublishId;
-    private HashMap<String, Boolean> mVoiceSetting = new HashMap<String, Boolean>();
-    private HashMap<String, Boolean> mVideoSetting = new HashMap<String, Boolean>();
+    private HashMap<String,Boolean> mVoiceSetting =new HashMap<String, Boolean>();
+    private HashMap<String,Boolean> mVideoSetting =new HashMap<String, Boolean>();
 
     private Handler mUiHandler = new Handler() {
         public void handleMessage(Message msg) {
@@ -209,22 +210,19 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
 
         mIMM = (InputMethodManager) MeetingActivity.this.getSystemService(MainActivity.INPUT_METHOD_SERVICE);
 
-        mAnyM2Mutlier = new AnyrtcM2Mutlier(this, this);
+       // mAnyM2Mutlier = new AnyrtcM2Mutlier(this, this);
         mVideoView = new VideoViews((GLSurfaceView) findViewById(R.id.glview_call), mParentLayout, mCloseVoice, mCloseVideo, this);
-        mAnyM2Mutlier.InitVideoView((GLSurfaceView) findViewById(R.id.glview_call), null);
+ /*       mAnyM2Mutlier.InitVideoView((GLSurfaceView) findViewById(R.id.glview_call), null);
 
         {
             M2MPublisher.PublishParams params = new M2MPublisher.PublishParams();
             params.bEnableVideo = true;
             params.eStreamType = M2MPublisher.StreamType.ST_RTC;
             mAnyM2Mutlier.Publish(params);
-        }
+        }*/
+        mAnyM2Mutlier = new AnyrtcMeet(this, this);
 
-        mMsgSender = TeamMeetingApp.getmMsgSender();
-        mNetWork = new NetWork();
-        mShareHelper = new ShareHelper(MeetingActivity.this);
-        mMettingAnim = new MeetingAnim();
-        mMettingAnim.setAnimEndListener(mAnimationEndListener);
+
 
         Intent intent = getIntent();
         mMeetingId = intent.getStringExtra("meetingId");
@@ -232,6 +230,19 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
         mNotifTags = intent.getIntExtra("tags", 0);
         String roomName = getIntent().getStringExtra("meetingName");
         mTvRoomName.setText(roomName);
+        String anyrtcId = intent.getStringExtra("anyrtcId");
+
+        mAnyM2Mutlier.Join(anyrtcId);
+
+        mAnyM2Mutlier.InitVideoView((GLSurfaceView) findViewById(R.id.glview_call));
+
+        mMsgSender = TeamMeetingApp.getmMsgSender();
+        mNetWork = new NetWork();
+        mShareHelper = new ShareHelper(MeetingActivity.this);
+        mMettingAnim = new MeetingAnim();
+        mMettingAnim.setAnimEndListener(mAnimationEndListener);
+
+
 
         mShareUrl = "Let us see in a meeting!:" + "http://115.28.70.232/share_meetingRoom/#" + mMeetingId;
 
@@ -337,9 +348,7 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
                 break;
         }
         return super.onTouchEvent(event);
-
     }
-
 
     /**
      * chataShow
@@ -390,7 +399,6 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
-
         if (mPopupWindowCustom != null) {
             mPopupWindowCustom.dismiss();
             mPopupWindowCustom = null;
@@ -400,6 +408,8 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
 
             mVideoView.onScreenChanged();
         }
+
+
         super.onConfigurationChanged(newConfig);
     }
 
@@ -818,10 +828,12 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
         mVideoView.CloseLocalRender();
         {// Close all
             if (mAnyM2Mutlier != null) {
-                mAnyM2Mutlier.Destroy();
+                mAnyM2Mutlier.Leave();
                 mAnyM2Mutlier = null;
             }
         }
+
+
         super.onDestroy();
     }
 
@@ -844,30 +856,31 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
     /**
      * updateImageFlag
      */
-    private void updateImageFlag() {
+    private void updateImageFlag(){
 
         Iterator<Map.Entry<String, Boolean>> iterator = mVideoSetting.entrySet().iterator();
 
-        while (iterator.hasNext()) {
-            Map.Entry<String, Boolean> entry = iterator.next();
+        while(iterator.hasNext()){
+            Map.Entry<String,Boolean> entry = iterator.next();
             String publishId = entry.getKey();
             Boolean videoFlag = entry.getValue();
-            mVideoView.updateRemoteVideoImage(publishId, videoFlag);
+            mVideoView.updateRemoteVideoImage(publishId,videoFlag);
         }
 
 
         iterator = mVoiceSetting.entrySet().iterator();
 
-        while (iterator.hasNext()) {
-            Map.Entry<String, Boolean> entry = iterator.next();
+        while(iterator.hasNext()){
+            Map.Entry<String,Boolean> entry = iterator.next();
             String publishId = entry.getKey();
             Boolean voiceFlag = entry.getValue();
-            mVideoView.updateRemoteVoiceImage(publishId, voiceFlag);
+            mVideoView.updateRemoteVoiceImage(publishId,voiceFlag);
         }
 
 
-    }
 
+    }
+    
 
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
@@ -878,7 +891,7 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
      * For M2MultierEvents callback.
      * All callback is running run handle thread, so could update ui directly.
      */
-    @Override
+/*    @Override
     public void OnRtcPublishOK(String publishId, String rtmpUrl, String hlsUrl) {
         int code = mMsgSender.TMNotifyMsg(mMeetingId, mRname, JMClientType.MCSENDTAGS_SUBSCRIBE, publishId);
         mPublishId = publishId;
@@ -923,6 +936,21 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
         if (mDebug) {
             Log.e(TAG, "OnRtcSubscribeClosed: " + s);
         }
+    }*/
+
+    @Override
+    public void OnRtcJoinMeetOK(String s) {
+
+    }
+
+    @Override
+    public void OnRtcJoinMeetFailed(String s, int i, String s1) {
+
+    }
+
+    @Override
+    public void OnRtcLeaveMeet() {
+
     }
 
     @Override
@@ -992,19 +1020,19 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
         }
     }
 
-    private void mcsendtags_subscribe(String message) {
+   private void mcsendtags_subscribe(String message) {
         MCSENDTAGS_SUBSCRIBE = true;
         mTvRemind.setVisibility(View.GONE);
-        if (mAnyM2Mutlier != null)
+/*        if (mAnyM2Mutlier != null)
             mAnyM2Mutlier.Subscribe(message, true);
         else if (mDebug)
-            Log.e(TAG, "onRequesageMsg: " + " mAnyM2Mutlier = = null ");
+            Log.e(TAG, "onRequesageMsg: " + " mAnyM2Mutlier = = null ");*/
     }
 
     private void mcsendtags_unsubscribe(String message) {
         if (mAnyM2Mutlier != null) {
             mVideoView.RemoveRemoteRender(message);
-            mAnyM2Mutlier.UnSubscribe(message);
+           // mAnyM2Mutlier.UnSubscribe(message);
         } else if (mDebug)
             Log.e(TAG, "onRequesageMsg: " + " mAnyM2Mutlier = = null ");
     }
@@ -1019,10 +1047,10 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
 
                 if (media.equals("Open")) {
                     mVideoView.updateRemoteVoiceImage(publishId, true);
-                    mVoiceSetting.put(publishId, true);
+                    mVoiceSetting.put(publishId,true);
                 } else if (media.equals("Close")) {
                     mVideoView.updateRemoteVoiceImage(publishId, true);
-                    mVoiceSetting.put(publishId, false);
+                    mVoiceSetting.put(publishId,false);
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -1040,10 +1068,10 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
                 Log.e(TAG, "onRequesageMsg: media " + media + " publishId " + publishId);
                 if (media.equals("Open")) {
                     mVideoView.updateRemoteVoiceImage(publishId, true);
-                    mVideoSetting.put(publishId, true);
+                    mVideoSetting.put(publishId,true);
                 } else if (media.equals("Close")) {
                     mVideoView.updateRemoteVoiceImage(publishId, true);
-                    mVideoSetting.put(publishId, false);
+                    mVideoSetting.put(publishId,false);
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -1062,6 +1090,7 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
             //addAutoView(message, name);
         }
     }
+
 
 
     private void netWorkTypeStart(int type) {
@@ -1114,7 +1143,6 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
             case MSG_NOTIFICATION_MEETING_CLOSE_MAIN:
                 if (mDebug)
                     Log.e(TAG, "MSG_NOTIFICATION_MEETING_CLOSE_MAIN " + msg.getData().toString());
-                //Notify start another Meeting
                 msgSenderLeave();
                 msg.what = EventType.MSG_NOTIFICATION_MEETING_CLOSE.ordinal();
                 EventBus.getDefault().post(msg);

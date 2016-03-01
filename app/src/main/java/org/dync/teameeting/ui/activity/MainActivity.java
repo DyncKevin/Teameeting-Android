@@ -536,22 +536,23 @@ public class MainActivity extends BaseActivity {
         MeetingListEntity meetingListEntity = mRoomMeetingList.get(position);
         String meetingName = meetingListEntity.getMeetname();
         String meetingId = meetingListEntity.getMeetingid();
-        String mAnyrtcid = meetingListEntity.getAnyrtcid();
+        String anyrtcId = meetingListEntity.getAnyrtcid();
         mNetWork.updateUserMeetingJointime(getSign(), meetingId, position);
+
         int owner = meetingListEntity.getOwner();
         if (owner == 0) {
             mNetWork.getMeetingInfo(meetingId, JoinActType.JOIN_ENTER_ACTIVITY);
         } else {
-            statrMeetingActivity(meetingName, meetingId, mAnyrtcid);
+            statrMeetingActivity(meetingName, meetingId,anyrtcId);
         }
     }
 
-    private void statrMeetingActivity(String meetingName, String meetingId, String mAnyrtcid) {
+    private void statrMeetingActivity(String meetingName, String meetingId,String anyrtcId) {
         Intent intent = new Intent(mContext, MeetingActivity.class);
         intent.putExtra("meetingName", meetingName);
         intent.putExtra("meetingId", meetingId);
         intent.putExtra("userId", mUserId);
-        intent.putExtra("anyrtcid", mAnyrtcid);
+        intent.putExtra("anyrtcId",anyrtcId);
         if (isNotifactionChack) {
             intent.putExtra("tags", mNotifTags);
             isNotifactionChack = false;
@@ -785,8 +786,8 @@ public class MainActivity extends BaseActivity {
         MeetingListEntity meetingListEntity = TeamMeetingApp.getmSelfData().getMeetingListEntity();
         int usable = meetingListEntity.getMeetenable();
         mUrlMeetingName = meetingListEntity.getMeetname();
-        String mAnyrtcid = meetingListEntity.getAnyrtcid();
         String meetinId = meetingListEntity.getMeetingid();
+        String anyrtcId = meetingListEntity.getAnyrtcid();
         String joinType;
         switch (usable) {
             case 0://no
@@ -796,7 +797,7 @@ public class MainActivity extends BaseActivity {
 
                 joinType = msg.getData().getString(JoinActType.JOIN_TYPE);
                 if (joinType == JoinActType.JOIN_ENTER_ACTIVITY) {
-                    statrMeetingActivity(mUrlMeetingName, meetinId, mAnyrtcid);
+                    statrMeetingActivity(mUrlMeetingName, meetinId,anyrtcId);
                 } else if (joinType == JoinActType.JOIN_LINK_JOIN_ACTIVITY) {
                     mNetWork.insertUserMeetingRoom(getSign(), meetinId, JoinActType.JOIN_INSERT_LINK_JOIN_ACTIVITY);
                 }
@@ -806,7 +807,7 @@ public class MainActivity extends BaseActivity {
 
                 joinType = msg.getData().getString(JoinActType.JOIN_TYPE);
                 if (joinType == JoinActType.JOIN_ENTER_ACTIVITY) {
-                    statrMeetingActivity(mUrlMeetingName, meetinId, mAnyrtcid);
+                    statrMeetingActivity(mUrlMeetingName, meetinId,anyrtcId);
                 } else if (joinType == JoinActType.JOIN_LINK_JOIN_ACTIVITY) {
 
                     Toast.makeText(mContext, R.string.str_meeting_privated, Toast.LENGTH_SHORT).show();
