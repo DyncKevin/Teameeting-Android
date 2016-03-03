@@ -42,6 +42,7 @@
     <string name="str_join_room_wait">正在进入会议请等待</string>
     <string name="str_create">"创建  :  "</string>
     <string name="str_join">"加入  :  "</string>
+    <string name="str_user_name_null">用户名不能为空</string>
 
   <!-- 进入会议界面  -->
     
@@ -87,4 +88,8 @@
     <string name="dialog_exit">退出</string>
     <string name="toast_seeting_success">设置成功</string>
     <string name="chat_output_name">我</string>
+
+    <string name="notifi_str_new_message">有新消息 :</string>
+    <string name="notifi_str_enter_room">有人进入 :</string>
+
 </resources>

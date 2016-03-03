@@ -110,7 +110,7 @@ public class SwipeListAdapter extends CommonAdapter<MeetingListEntity> {
 
     private void setData(MeetingListEntity meetingListEntity, ViewHolder mHolder) {
         mHolder.mRoomName.setText("" + meetingListEntity.getMeetname());
-        mHolder.mRoomPeopleCount.setText("" + meetingListEntity.getMemnumber());
+      //  mHolder.mRoomPeopleCount.setText("" + meetingListEntity.getMemnumber());
 
         if (meetingListEntity.getMemnumber() > 0) {
             mHolder.mNotificationsClose.setVisibility(View.GONE);

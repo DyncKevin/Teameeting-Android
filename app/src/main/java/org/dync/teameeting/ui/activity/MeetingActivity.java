@@ -1,19 +1,23 @@
 package org.dync.teameeting.ui.activity;
 
 import android.animation.Animator;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.graphics.Rect;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -27,12 +31,13 @@ import android.widget.Toast;
 import com.nineoldandroids.view.ViewPropertyAnimator;
 
 import org.anyrtc.AnyrtcM2Mutlier;
-import org.anyrtc.m2multier.M2MPublisher;
-import org.anyrtc.m2multier.M2MultierEvents;
+import org.anyrtc.AnyrtcMeet;
+import org.anyrtc.common.MeetEvents;
 import org.dync.teameeting.R;
 import org.dync.teameeting.TeamMeetingApp;
 import org.dync.teameeting.bean.ChatMessage;
 import org.dync.teameeting.bean.ChatMessage.Type;
+import org.dync.teameeting.bean.MessageList;
 import org.dync.teameeting.bean.MessageListEntity;
 import org.dync.teameeting.bean.ReqSndMsgEntity;
 import org.dync.teameeting.db.CRUDChat;
@@ -47,18 +52,20 @@ import org.dync.teameeting.ui.helper.DialogHelper;
 import org.dync.teameeting.ui.helper.MeetingAnim;
 import org.dync.teameeting.ui.helper.MeetingAnim.AnimationEndListener;
 import org.dync.teameeting.ui.helper.ShareHelper;
+import org.dync.teameeting.utils.ScreenUtils;
 import org.dync.teameeting.utils.VideoViews;
 import org.dync.teameeting.widgets.PopupWindowCustom;
 import org.dync.teameeting.widgets.PopupWindowCustom.OnPopupWindowClickListener;
 import org.dync.teameeting.widgets.ReFlashListView;
 import org.dync.teameeting.widgets.RoomControls;
+import org.dync.teameeting.widgets.VitualKey;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.webrtc.StatsReport;
 import org.webrtc.VideoTrack;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -70,7 +77,7 @@ import de.greenrobot.event.EventBus;
  *         2015-12-11 5:02:32
  */
 
-public class MeetingActivity extends MeetingBaseActivity implements M2MultierEvents,ReFlashListView.IReflashListener {
+public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, ReFlashListView.IReflashListener{
     // Local preview screen position before call is connected.
     private static final boolean mDebug = TeamMeetingApp.mIsDebug;
     private static final String TAG = "MeetingActivity";
@@ -78,22 +85,18 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
     private static final int ANIMATOR_TANSLATION = 0X01;
     private static final int MESSAGE_UPDATE = 0X02;
     boolean MCSENDTAGS_SUBSCRIBE = false;
-    private AnyrtcM2Mutlier mAnyM2Mutlier;
+   // private AnyrtcM2Mutlier mAnyM2Mutlier;
+    private AnyrtcMeet mAnyM2Mutlier;
     private MeetingAnim mMettingAnim;
     private ImageButton mChatButton, mInviteButton;
     private RoomControls mControlLayout;
-    private RelativeLayout mTopbarLayout,mParentLayout;
+    private RelativeLayout mTopbarLayout;
+    private VitualKey mParentLayout;
     private ImageButton mVoiceButton, mCameraButton, mHangUpButton,
             mSwitchCameraButton, mCameraOffButton;
-    private boolean mMeetingCameraFlag = true, mMeetingCameraOffFlag = true,
-            mMeetingVideoFlag = true, mMeetingVoiceFlag=true;
+    private boolean mMeetingCameraFlag = true, mMeetingCameraOffFlag = true, mMeetingVoiceFlag = true;
 
     private TextView mTvRoomName;
-
-    private String mBsNow, mBsBefore;
-
-    double mTsNow, mTsBefore;
-    private String mBitrate;
 
     private PopupWindowCustom mPopupWindowCustom;
     private ShareHelper mShareHelper;
@@ -107,19 +110,22 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
     int mLeftDistanceVoiceBtn;
 
     // chating
-    private RelativeLayout mRLChatBottom;
     private RelativeLayout mChatLayout;
     private ImageButton mChatClose;
     private Button mSendMessage;
     private TextView mTvRemind;
     private TextView mTvMessageCount;
     private String mUserId;
-    private final String mPass = TeamMeetingApp.getmSelfData().getAuthorization();
     private boolean mMessageShowFlag = true;
     private TMMsgSender mMsgSender;
-    private int  mMessagePageNum=1;
+    private int mMessagePageNum = 1;
 
     private SweetAlertDialog mNetErrorSweetAlertDialog;
+    private int mNotifTags;
+    private Message closeMsg = null;
+    private RelativeLayout mRlChatButton;
+    private TextView tvDuoyu;
+
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
@@ -139,6 +145,8 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
 
     private VideoViews mVideoView;
     private String mPublishId;
+    private HashMap<String,Boolean> mVoiceSetting =new HashMap<String, Boolean>();
+    private HashMap<String,Boolean> mVideoSetting =new HashMap<String, Boolean>();
 
     private Handler mUiHandler = new Handler() {
         public void handleMessage(Message msg) {
@@ -152,32 +160,30 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
 
                     break;
                 case MESSAGE_UPDATE:
-                    mMessageListEntity=TeamMeetingApp.getmSelfData().getMessageListEntityList();
-                    int oldSize = mDatas.size() ;
-                    for (int i =0 ;i<mMessageListEntity.size()-1;i++){
+                    mMessageListEntity = TeamMeetingApp.getmSelfData().getMessageListEntityList();
+                    int oldSize = mDatas.size();
+                    for (int i = 0; i < mMessageListEntity.size() - 1; i++) {
 
-                        String message =mMessageListEntity.get(i).getMessage();
-                        long  time =mMessageListEntity.get(i).getSendtime();
-                        String name = mMessageListEntity.get(i).getUsername();
+                        String message = mMessageListEntity.get(i).getMessage();
+                        long time = mMessageListEntity.get(i).getSendtime();
                         ChatMessage chatMessage;
-                        if(mMessageListEntity.get(i).getUserid().equals(mUserId)){
+                        if (mMessageListEntity.get(i).getUserid().equals(mUserId)) {
                             chatMessage = new ChatMessage(Type.OUTPUT, message, "name", time + "");
-                        }else{
-                            chatMessage = new ChatMessage(Type.INPUT, message, name, time + "");
+                        } else {
+                            chatMessage = new ChatMessage(Type.INPUT, message, "name", time + "");
                         }
 
-                        mDatas.add(0,chatMessage);
+                        mDatas.add(0, chatMessage);
                     }
 
                     //Collections.sort(mDatas);
 
 
                     mAdapter.notifyDataSetChanged();
-                    if(mMessagePageNum==1)
+                    if (mMessagePageNum == 1)
                         mChatView.setSelection(mDatas.size() - 1);
                     else
                         mChatView.setSelection(mDatas.size() - oldSize);
-
                 default:
                     break;
             }
@@ -186,18 +192,22 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
 
     };
 
+    public static MeetingActivity instance = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        instance = this;
         initView();
         inintData();
 
-
+        List<String> activityList = TeamMeetingApp.getActivityList();
+        activityList.add(0, mMeetingId);
+        if (mDebug)
+            Log.e(TAG, "onStart:存储Id " + mMeetingId);
     }
 
-
-    private void inintData(){
+    private void inintData() {
 
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -205,33 +215,44 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
 
         mNetErrorSweetAlertDialog = DialogHelper.createNetErroDilaog(this, sweetClickListener);
 
-        mIMM = (InputMethodManager) MeetingActivity.this
-                .getSystemService(MainActivity.INPUT_METHOD_SERVICE);
+        mIMM = (InputMethodManager) MeetingActivity.this.getSystemService(MainActivity.INPUT_METHOD_SERVICE);
 
-        mAnyM2Mutlier = new AnyrtcM2Mutlier(this, this);
-        mVideoView = new VideoViews((GLSurfaceView) findViewById(R.id.glview_call),mParentLayout,mCloseVoice,mCloseVideo,this);
-        mAnyM2Mutlier.InitVideoView((GLSurfaceView) findViewById(R.id.glview_call),null);
+       // mAnyM2Mutlier = new AnyrtcM2Mutlier(this, this);
+        mVideoView = new VideoViews((GLSurfaceView) findViewById(R.id.glview_call), mParentLayout, mCloseVoice, mCloseVideo, this);
+ /*       mAnyM2Mutlier.InitVideoView((GLSurfaceView) findViewById(R.id.glview_call), null);
 
         {
             M2MPublisher.PublishParams params = new M2MPublisher.PublishParams();
             params.bEnableVideo = true;
             params.eStreamType = M2MPublisher.StreamType.ST_RTC;
             mAnyM2Mutlier.Publish(params);
-        }
+        }*/
+        mAnyM2Mutlier = new AnyrtcMeet(this, this);
 
-        mMsgSender=TeamMeetingApp.getmMsgSender();
+        GLSurfaceView surfaceView = (GLSurfaceView) findViewById(R.id.glview_call);
+       // surfaceView.setc
+
+        Intent intent = getIntent();
+        mMeetingId = intent.getStringExtra("meetingId");
+        mUserId = intent.getStringExtra("userId");
+        mNotifTags = intent.getIntExtra("tags", 0);
+        String roomName = getIntent().getStringExtra("meetingName");
+        mTvRoomName.setText(roomName);
+        String anyrtcId = intent.getStringExtra("anyrtcId");
+
+        mAnyM2Mutlier.Join(anyrtcId);
+
+        mAnyM2Mutlier.InitVideoView((GLSurfaceView) findViewById(R.id.glview_call));
+
+        mMsgSender = TeamMeetingApp.getmMsgSender();
         mNetWork = new NetWork();
         mShareHelper = new ShareHelper(MeetingActivity.this);
         mMettingAnim = new MeetingAnim();
         mMettingAnim.setAnimEndListener(mAnimationEndListener);
 
-        Intent intent = getIntent();
-        mMeetingId = intent.getStringExtra("meetingId");
-        mUserId = intent.getStringExtra("userId");
-        mRname = getIntent().getStringExtra("meetingName");
-        mTvRoomName.setText(mRname);
 
-        mShareUrl ="Let us see in a meeting!:"+"http://115.28.70.232/share_meetingRoom/#"+mMeetingId;
+
+        mShareUrl = "Let us see in a meeting!:" + "http://115.28.70.232/share_meetingRoom/#" + mMeetingId;
 
         mChatView.setInterface(this);
 
@@ -246,10 +267,16 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
             Log.e(TAG, "inintData: " + "TMEnterRoom Failed");
         }
 
-        mNetWork.getMeetingMsgList(getSign(),mMeetingId,""+mMessagePageNum,20+"");
+        mNetWork.getMeetingMsgList(getSign(), mMeetingId, "" + mMessagePageNum, 20 + "");
+        if (mNotifTags == 1) {
 
-
-
+            if (TeamMeetingApp.isPad) {
+                chatLayoutControl(300);
+            } else {
+                mMessageShowFlag = false;
+                mChatLayout.setVisibility(View.VISIBLE);
+            }
+        }
     }
 
 
@@ -257,14 +284,15 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
     private void initView() {
 
         // Create UI controls.
-        mParentLayout = (RelativeLayout) findViewById(R.id.meet_parent);
+        mParentLayout = (VitualKey) findViewById(R.id.meet_parent);
         mTopbarLayout = (RelativeLayout) findViewById(R.id.rl_meeting_topbar);
         mControlLayout = (RoomControls) findViewById(R.id.rl_meeting_control);
-
+        tvDuoyu = (TextView) findViewById(R.id.tv_duoyu);
         mChatButton = (ImageButton) findViewById(R.id.imgbtn_chat);
         mInviteButton = (ImageButton) findViewById(R.id.imgbtn_invite);
         mTvRoomName = (TextView) findViewById(R.id.tv_room_name);
         mTvRemind = (TextView) findViewById(R.id.tv_remind);
+        mRlChatButton = (RelativeLayout) findViewById(R.id.rl_chat_bottom);
 
         mCloseVideo = (ImageView) findViewById(R.id.iv_close_video);
         mCloseVoice = (ImageView) findViewById(R.id.iv_close_voice);
@@ -282,9 +310,10 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
         mSwitchCameraButton.setOnClickListener(onClickListener);
         mCameraOffButton.setOnClickListener(onClickListener);
 
+        mParentLayout.setInterface(mLayoutKeyChange);
+
         // Chat ui inint
-        mRLChatBottom = (RelativeLayout) findViewById(R.id.rl_chat_bottom);
-        mTvMessageCount = (TextView)findViewById(R.id.tv_message_count);
+        mTvMessageCount = (TextView) findViewById(R.id.tv_message_count);
         mChatLayout = (RelativeLayout) findViewById(R.id.rl_chating);
         mSendMessage = (Button) findViewById(R.id.btn_chat_send);
         mChatClose = (ImageButton) findViewById(R.id.imgbtn_back);
@@ -292,15 +321,12 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
         mMsg = (EditText) findViewById(R.id.et_chat_msg);
         mSendMessage.setOnClickListener(onClickListener);
         mChatClose.setOnClickListener(onClickListener);
-
         //下拉刷新
-       // initSwipeRefreshLayout();
+        // initSwipeRefreshLayout();
         mAdapter = new ChatMessageAdapter(this, mDatas);
         mChatView.setAdapter(mAdapter);
 
     }
-
-
 
 
     float downX = 0;
@@ -313,13 +339,14 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
             case MotionEvent.ACTION_DOWN:
                 downX = event.getX();
                 downY = event.getY();
-                Log.e(TAG, downX + "onTouchEvent " + downY);
+                Log.e(TAG, downX + "onTouchEvent ACTION_DOWN " + downY);
+
                 break;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
                 float moveX = event.getX() - downX;
                 float moveY = event.getY() - downY;
-                Log.e(TAG, moveY + "onTouchEvent " + moveX);
+                Log.e(TAG, moveY + "onTouchEvent ACTION_UP " + moveX);
                 if (Math.abs(moveX) > Math.abs(moveY) && TeamMeetingApp.isPad) {
                     chatLayoutControl(moveX);
                 } else {
@@ -333,29 +360,6 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
         return super.onTouchEvent(event);
     }
 
-/*    private void initSwipeRefreshLayout() {
-        final SwipeRefreshLayout swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_container);
-        swipeRefreshLayout.setColorScheme(android.R.color.holo_blue_light, android.R.color.holo_red_light, android.R.color.holo_orange_light, android.R.color.holo_green_light);
-        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-
-                if (mDebug) {
-                    Log.e(TAG, "onRefresh:mSign" + mSign);
-                }
-                mMessagePageNum++;
-                mNetWork.getMeetingMsgList(getSign(),mMeetingId,""+mMessagePageNum,20+"");
-
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        swipeRefreshLayout.setRefreshing(false);
-                    }
-                }, 3000);
-            }
-        });
-    }*/
-
     /**
      * chataShow
      *
@@ -365,23 +369,24 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
         int controllMove = controllerMoveDistance(mChatLayout);
         int showTime = 500;
         if (moveX > 0 && !mChatLayoutShow) {
-            mRLChatBottom.setVisibility(View.VISIBLE);
             mChatLayoutShow = true;
-            Anims.animateRightMarginTo(mChatLayout, 0, mChatLayout.getWidth(), showTime, Anims.ACCELERATE);
+
+            Anims.animateRightMarginTo(mChatLayout, 0, mChatLayout.getWidth() - tvDuoyu.getWidth(), showTime, Anims.ACCELERATE);
             Anims.animateRightMarginTo(mControlLayout, 0, controllMove, showTime, Anims.ACCELERATE);
             Anims.animateRightMarginTo(mTvRemind, 0, controllMove, showTime, Anims.ACCELERATE);
             // Anims.animateRightMarginTo(mTvRoomName, 0, controllMove, showTime, Anims.ACCELERATE);
 
         } else if (moveX < 0 && mChatLayoutShow) {
             mChatLayoutShow = false;
-            Anims.animateRightMarginTo(mChatLayout, mChatLayout.getWidth(), 0, showTime, Anims.ACCELERATE);
+
+            Anims.animateRightMarginTo(mChatLayout, mChatLayout.getWidth() - tvDuoyu.getWidth(), 0, showTime, Anims.ACCELERATE);
             Anims.animateRightMarginTo(mControlLayout, controllMove, 0, showTime, Anims.ACCELERATE);
             Anims.animateRightMarginTo(mTvRemind, controllMove, 0, showTime, Anims.ACCELERATE);
             //Anims.animateRightMarginTo(mTvRoomName, controllMove, 0, showTime, Anims.ACCELERATE);
             //delete db  data
             CRUDChat.deleteByMeetingId(MeetingActivity.this, mMeetingId);
-            mTvMessageCount.setVisibility(View.GONE);
-            mRLChatBottom.setVisibility(View.GONE);
+            mTvMessageCount.setVisibility(View.INVISIBLE);
+
         }
     }
 
@@ -404,13 +409,12 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
-
         if (mPopupWindowCustom != null) {
             mPopupWindowCustom.dismiss();
             mPopupWindowCustom = null;
         }
 
-        if(mVideoView!=null){
+        if (mVideoView != null) {
 
             mVideoView.onScreenChanged();
         }
@@ -419,6 +423,7 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
         super.onConfigurationChanged(newConfig);
     }
 
+
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
 
@@ -426,12 +431,12 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
                 && event.getAction() == KeyEvent.ACTION_DOWN
                 ) {
             if (TeamMeetingApp.isPad) {
-                if(mChatLayoutShow)
+                if (mChatLayoutShow)
                     chatLayoutControl(-100);
                 else
                     msgSenderLeave();
             } else {
-                if(mChatLayout.getVisibility() == View.VISIBLE) {
+                if (mChatLayout.getVisibility() == View.VISIBLE) {
                     mMessageShowFlag = true;
                     mChatLayout.setVisibility(View.GONE);
                     mTopbarLayout.setVisibility(View.VISIBLE);
@@ -439,13 +444,10 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
                     //delete db  data
                     CRUDChat.deleteByMeetingId(MeetingActivity.this, mMeetingId);
                     mTvMessageCount.setVisibility(View.GONE);
-                }else{
+                } else {
                     msgSenderLeave();
                 }
             }
-
-
-
             return true;
         }
         return super.onKeyDown(keyCode, event);
@@ -547,15 +549,10 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
                     break;
 
                 case R.id.imgbtn_chat:
-
                     stopShowMessage();
                     if (TeamMeetingApp.isPad) {
-                        if(mChatLayoutShow){
-                            chatLayoutControl(-100);
-                        }else{
-                            chatLayoutControl(100);
-                        }
-
+                        int value = mChatLayoutShow == true ? -100 : 100;
+                        chatLayoutControl(value);
                     } else {
                         mMessageShowFlag = false;
                         mChatLayout.setVisibility(View.VISIBLE);
@@ -571,7 +568,7 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
                     mMessageShowFlag = true;
 
                     //delete db  data
-                    CRUDChat.deleteByMeetingId(MeetingActivity.this,mMeetingId);
+                    CRUDChat.deleteByMeetingId(MeetingActivity.this, mMeetingId);
                     mTvMessageCount.setVisibility(View.GONE);
 
                     mIMM.hideSoftInputFromWindow(mMsg.getWindowToken(), 0);
@@ -582,6 +579,7 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
                         }
                     }, 400);
                     break;
+
             }
         }
 
@@ -589,10 +587,69 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
     };
 
     /**
+     * Solve the problem of hide the virtual keyboard
+     * @param ev
+     * @return
+     */
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        Log.e(TAG, "dispatchTouchEvent: "+ super.dispatchTouchEvent(ev)+" ev.getAction() "+ev.getAction() );
+
+        if (ev.getAction() == MotionEvent.ACTION_DOWN) {
+           // View v = getCurrentFocus();
+
+            if (isShouldHideInput(mMsg, ev)) {
+
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                if (imm != null) {
+                    imm.hideSoftInputFromWindow(mMsg.getWindowToken(), 0);
+                }
+                //return false;
+            }
+           // return false;
+            return super.dispatchTouchEvent(ev);
+        }
+        // Essential, otherwise all the components are there won't be TouchEvent
+        if (getWindow().superDispatchTouchEvent(ev)) {
+            Log.e(TAG, "dispatchTouchEvent: "+" getWindow() ");
+            return true;
+        }
+       // return onTouchEvent(ev);
+        return false;
+    }
+
+    /**
+     * isShouldHideInput
+     * @param v
+     * @param event
+     * @return
+     */
+    private  boolean isShouldHideInput(View v, MotionEvent event) {
+        if (v != null && (v instanceof EditText)) {
+            int[] leftTop = { 0, 0 };
+            //To obtain input box's current location location to obtain input box's current location
+            v.getLocationInWindow(leftTop);
+            int left = leftTop[0];
+            int top = leftTop[1];
+            int bottom = top + v.getHeight();
+            int right = left + v.getWidth();
+            if (event.getX() > left && event.getX() < right
+                    && event.getY() > top && event.getY() < bottom) {
+                // Click on the input box area, click keep EditText events
+                return false;
+            } else {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * msgSenderLeave
      */
-    private void msgSenderLeave(){
+    private void msgSenderLeave() {
         int code = mMsgSender.TMOptRoom(JMClientType.MCCMD_LEAVE, mMeetingId, mRname, "");
+        finish();
         if (code >= 0) {
             if (mDebug) {
                 Log.e(TAG, "TMLeaveRoom Successed");
@@ -601,16 +658,13 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
             Log.e(TAG, "TMLeaveRoom Failed");
         }
 
-        finish();
     }
+
     /**
      * videoSetting
      */
 
-    private void videoSetting(){
-
-        //mRtkClient.setLocalVideoDisabled();
-
+    private void videoSetting() {
         if (!mMeetingCameraOffFlag) {
             mAnyM2Mutlier.SetLocalVideoEnabled(true);
             mCameraButton.setImageResource(R.drawable.btn_camera_on);
@@ -620,21 +674,21 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
                 mVideoView.updateLocalVideoImage(true);
 
                 JSONObject json = new JSONObject();
-                int code =0;
+                int code = 0;
                 try {
-                    json.put("PublishId",mPublishId);
-                    json.put("Media","Open");
-                    code = mMsgSender.TMNotifyMsg(mMeetingId,mRname, JMClientType.MCSENDTAGS_VIDEOSET,json.toString());
+                    json.put("PublishId", mPublishId);
+                    json.put("Media", "Open");
+                    code = mMsgSender.TMNotifyMsg(mMeetingId, mRname, JMClientType.MCSENDTAGS_VIDEOSET, json.toString());
 
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
 
-                if(mDebug){
-                    if(code >=0)
-                        Log.e(TAG, "videoCloseSetting: Successed " );
+                if (mDebug) {
+                    if (code >= 0)
+                        Log.e(TAG, "videoCloseSetting: Successed ");
                     else
-                        Log.e(TAG, "videoCloseSetting: failed " );
+                        Log.e(TAG, "videoCloseSetting: failed ");
                 }
             }
             return;
@@ -678,15 +732,14 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
     /**
      * videoCloseSetting
      */
-    private void videoCloseSetting(){
+    private void videoCloseSetting() {
         //mAnyM2Mutlier.SetLocalVideoEnabled(false);
         if (mVideoView.LocalVideoTrack() != null) {
             mVideoView.LocalVideoTrack().setEnabled(false);
             mVideoView.updateLocalVideoImage(false);
         }
 
-        mCameraButton
-                .setImageResource(R.drawable.btn_camera_off_select);
+        mCameraButton.setImageResource(R.drawable.btn_camera_off_select);
         mMettingAnim.rotationOrApaha(mCameraButton, mMeetingCameraFlag);
         mMettingAnim.translationAlphaAnimator(mSwitchCameraButton, 0,
                 (mLeftDistanceCameraBtn - mLeftDistanceHangUpBtn), 300,
@@ -698,21 +751,21 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
         mMeetingCameraFlag = true;
 
         JSONObject json = new JSONObject();
-        int code =0;
+        int code = 0;
         try {
-                json.put("PublishId",mPublishId);
-                json.put("Media","Close");
-                code = mMsgSender.TMNotifyMsg(mMeetingId,mRname, JMClientType.MCSENDTAGS_VIDEOSET,json.toString());
+            json.put("PublishId", mPublishId);
+            json.put("Media", "Close");
+            code = mMsgSender.TMNotifyMsg(mMeetingId, mRname, JMClientType.MCSENDTAGS_VIDEOSET, json.toString());
 
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
-        if(mDebug){
-            if(code >=0)
-                Log.e(TAG, "videoCloseSetting: Successed " );
+        if (mDebug) {
+            if (code >= 0)
+                Log.e(TAG, "videoCloseSetting: Successed ");
             else
-                Log.e(TAG, "videoCloseSetting: failed " );
+                Log.e(TAG, "videoCloseSetting: failed ");
         }
 
     }
@@ -721,19 +774,19 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
     /**
      * voice Setting
      */
-    private void voiceSetting(){
+    private void voiceSetting() {
         JSONObject json = new JSONObject();
-        int code =0;
+        int code = 0;
         try {
-            json.put("PublishId",mPublishId);
+            json.put("PublishId", mPublishId);
 
             if (mMeetingVoiceFlag) {
                 mVoiceButton.setImageResource(R.drawable.btn_voice_off);
                 //mCloseVoice.setVisibility(View.VISIBLE);
                 mVideoView.updateLocalVoiceImage(false);
                 mAnyM2Mutlier.SetLocalAudioEnabled(false);
-                json.put("Media","Close");
-                code = mMsgSender.TMNotifyMsg(mMeetingId,mRname, JMClientType.MCSENDTAGS_AUDIOSET,json.toString());
+                json.put("Media", "Close");
+                code = mMsgSender.TMNotifyMsg(mMeetingId, mRname, JMClientType.MCSENDTAGS_AUDIOSET, json.toString());
 
 
             } else {
@@ -741,8 +794,8 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
                 //mCloseVoice.setVisibility(View.INVISIBLE);
                 mVideoView.updateLocalVoiceImage(true);
                 mAnyM2Mutlier.SetLocalAudioEnabled(true);
-                json.put("Media","Open");
-                code = mMsgSender.TMNotifyMsg(mMeetingId,mRname, JMClientType.MCSENDTAGS_AUDIOSET,json.toString());
+                json.put("Media", "Open");
+                code = mMsgSender.TMNotifyMsg(mMeetingId, mRname, JMClientType.MCSENDTAGS_AUDIOSET, json.toString());
             }
             mMeetingVoiceFlag = !mMeetingVoiceFlag;
 
@@ -750,11 +803,11 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
             e.printStackTrace();
         }
 
-        if(mDebug){
-            if(code >=0)
-                Log.e(TAG, "voiceSetting: Successed " );
+        if (mDebug) {
+            if (code >= 0)
+                Log.e(TAG, "voiceSetting: Successed ");
             else
-                Log.e(TAG, "voiceSetting: failed " );
+                Log.e(TAG, "voiceSetting: failed ");
         }
     }
 
@@ -766,17 +819,14 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
     private void sendMessageChat() {
         final String pushMsg = mMsg.getText().toString();
         if (TextUtils.isEmpty(pushMsg)) {
-            Toast.makeText(this, R.string.str_content_empty, Toast.LENGTH_SHORT)
-                    .show();
+            Toast.makeText(this, R.string.str_content_empty, Toast.LENGTH_SHORT).show();
             return;
         }
 
-        if(mMsgSender.TMConnStatus()!=JMClientType.CSCONNECTED){
-            Toast.makeText(this, R.string.str_message_server_not_connect, Toast.LENGTH_SHORT)
-                    .show();
+        if (mMsgSender.TMConnStatus() != JMClientType.CSCONNECTED) {
+            Toast.makeText(this, R.string.str_message_server_not_connect, Toast.LENGTH_SHORT).show();
             return;
         }
-
 
         ChatMessage to = new ChatMessage(Type.OUTPUT, pushMsg, "name", System.currentTimeMillis() + "");
         mDatas.add(to);
@@ -784,7 +834,7 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
         mChatView.setSelection(mDatas.size() - 1);
         mMsg.setText("");
 
-        mNetWork.pushMeetingMsg(getSign(), mMeetingId, "push message", "notification");
+        //  mNetWork.pushMeetingMsg(getSign(), mMeetingId, "push message", "notification");
 
         int code = mMsgSender.TMSndMsg(mMeetingId, mRname, pushMsg);
         if (code >= 0) {
@@ -799,20 +849,21 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
 
     /**
      * leaveMessageDealWith
-     *
      */
-    private  void leaveMessageDealWith(){
-
-        String leaveMessageCount = CRUDChat.selectChatList(MeetingActivity.this,mMeetingId).size()+"";
-        if(mDebug){
-            Log.e(TAG, "leaveMessageDealWith: leaveMessageCount "+leaveMessageCount);
+    private void leaveMessageDealWith() {
+        String leaveMessageCount = CRUDChat.selectChatList(MeetingActivity.this, mMeetingId).size() + "";
+        if (mDebug) {
+            Log.e(TAG, "leaveMessageDealWith: leaveMessageCount " + leaveMessageCount);
         }
-        if(mTvMessageCount.getVisibility()==View.GONE&&!leaveMessageCount.equals("0")){
+        if (mTvMessageCount.getVisibility() == View.GONE && !leaveMessageCount.equals("0")) {
             mTvMessageCount.setVisibility(View.VISIBLE);
-
         }
-
         mTvMessageCount.setText(leaveMessageCount);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
 
 
     }
@@ -826,24 +877,53 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
     @Override
     public void onResume() {
         super.onResume();
+        Log.e(TAG, "onResume: ");
         mAnyM2Mutlier.OnResume();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
     }
 
     @Override
     protected void onDestroy() {
         // TODO Auto-generated method stub
-        super.onDestroy();
 
+        List<String> activityList = TeamMeetingApp.getActivityList();
+        activityList.clear();
         mVideoView.CloseLocalRender();
-
         {// Close all
             if (mAnyM2Mutlier != null) {
-                mAnyM2Mutlier.Destroy();
+                mAnyM2Mutlier.Leave();
                 mAnyM2Mutlier = null;
             }
         }
-        EventBus.getDefault().unregister(this);
+
+        super.onDestroy();
     }
+
+    /**
+     * VitualKey Change
+     */
+    private VitualKey.LayoutKeyChange mLayoutKeyChange = new VitualKey.LayoutKeyChange() {
+        @Override
+        public void onLayoutKeyChange(int b) {
+
+            int screenHeight = ScreenUtils.getScreenHeight(MeetingActivity.this);
+/*            if(mDebug)
+            Log.e(TAG, "onLayoutKeyChange: "+" onLayoutKeyChange "+screenHeight);*/
+
+            // Vitual keymap
+            if(screenHeight-b>300){
+                mChatView.setSelection(mDatas.size() - 1);
+            }// Vitual key
+            else if (mVideoView != null) {
+                mVideoView.onScreenChanged();
+            }
+        }
+    };
 
     /**
      * chat data onReflash
@@ -855,85 +935,40 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
             @Override
             public void run() {
                 mMessagePageNum++;
-                mNetWork.getMeetingMsgList(getSign(),mMeetingId,""+mMessagePageNum,20+"");
+                mNetWork.getMeetingMsgList(getSign(), mMeetingId, "" + mMessagePageNum, 20 + "");
                 mChatView.reflashComplete();
             }
-        },1500);
+        }, 1500);
     }
-
-
-
 
     /**
-     * get the Frame Rate, Actual Bitrate and Remote Candidate Type from report
-     *
-     * @param reports the video report
+     * updateImageFlag
      */
-    private void updateEncoderStatistics(StatsReport[] reports) {
-        String fps = null;
-        String targetBitrate = null;
-        String actualBitrate = null;
-        String recvByte = null;
-        String sendByte = null;
-        String bytesReceived;
-        String reveivedHeight;
-        Double reveivedTime;
-        for (StatsReport report : reports) {
+    private void updateImageFlag(){
 
-            bytesReceived = null;
-            reveivedHeight = null;
-            if (report.type.equals("ssrc")) {
-                reveivedTime = report.timestamp;
-                Map<String, String> reportMap = new HashMap<String, String>();
+        Iterator<Map.Entry<String, Boolean>> iterator = mVideoSetting.entrySet().iterator();
 
-                for (StatsReport.Value value : report.values) {
-                    reportMap.put(value.name, value.value);
-
-                    if (value.name.equals("googFrameHeightReceived")) {
-                        reveivedHeight = value.value;
-                        if (bytesReceived != null) {
-                            break;
-                        }
-                    }
-
-                    if (value.name.equals("bytesReceived")) {
-                        bytesReceived = value.value;
-
-                    }
-                }
-
-                if (bytesReceived != null && reveivedHeight != null) {
-                    mBsNow = bytesReceived;
-                    mTsNow = reveivedTime;
-
-                    if (mBsBefore == null || mTsBefore == 0.0) {
-                        // Skip this round
-                        mBsBefore = mBsNow;
-                        mTsBefore = mTsNow;
-                    } else {
-                        // Calculate bitrate
-
-                        long tempBit = (Integer.parseInt(mBsNow) - Integer
-                                .parseInt(mBsBefore));
-                        if (tempBit < 0)
-                            continue;
-                        Double tempTime = (mTsNow - mTsBefore);
-                        // Log.e(TAG,
-                        // " tempBit "+tempBit+" tempTime "+tempTime);
-                        long bitRate = Math.round(tempBit * 8 / tempTime);
-                        mBitrate = bitRate + "KB/S";
-
-                        mBsBefore = mBsNow;
-                        mTsBefore = mTsNow;
-                        mUiHandler.sendEmptyMessage(0x01);
-                    }
-                }
-
-            }
-
+        while(iterator.hasNext()){
+            Map.Entry<String,Boolean> entry = iterator.next();
+            String publishId = entry.getKey();
+            Boolean videoFlag = entry.getValue();
+            mVideoView.updateRemoteVideoImage(publishId,videoFlag);
         }
 
+
+        iterator = mVoiceSetting.entrySet().iterator();
+
+        while(iterator.hasNext()){
+            Map.Entry<String,Boolean> entry = iterator.next();
+            String publishId = entry.getKey();
+            Boolean voiceFlag = entry.getValue();
+            mVideoView.updateRemoteVoiceImage(publishId,voiceFlag);
+        }
+
+
+
     }
+    
 
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
@@ -944,71 +979,42 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
      * For M2MultierEvents callback.
      * All callback is running run handle thread, so could update ui directly.
      */
+
     @Override
-    public void OnRtcPublishOK(String publishId, String rtmpUrl, String hlsUrl) {
-        //mAnyM2Mutlier.Subscribe(publishId, true);
-        // Toast.makeText(this, "PublishOK id: " + publishId, Toast.LENGTH_SHORT).show();
-        int code = mMsgSender.TMNotifyMsg(mMeetingId, mRname, JMClientType.MCSENDTAGS_SUBSCRIBE, publishId);
-        mPublishId = publishId;
-        if (mDebug) {
-            if (code >= 0)
-                Log.e(TAG, "PublishOK: Successed ");
-            else
-                Log.e(TAG, "PublishOK: failed " );
-        }
-    }
-    @Override
-    public void OnRtcPublishFailed(int i, String s) {
-        if(mDebug){
-            Log.e(TAG, "OnRtcPublishFailed: " );
-        }
+    public void OnRtcJoinMeetOK(String s) {
+
     }
 
     @Override
-    public void OnRtcPublishClosed() {
-        if(mDebug){
-            Log.e(TAG, "OnRtcPublishClosed: " );
-        }
+    public void OnRtcJoinMeetFailed(String s, int i, String s1) {
+
     }
 
     @Override
-    public void OnRtcSubscribeOK(String s) {
-        if(mDebug){
-            Log.e(TAG, "OnRtcSubscribeOK: " );
-        }
-    }
+    public void OnRtcLeaveMeet() {
 
-    @Override
-    public void OnRtcSubscribeFailed(String s, int i, String s1) {
-        if(mDebug){
-            Log.e(TAG, "OnRtcSubscribeFailed: " );
-        }
-    }
-
-    @Override
-    public void OnRtcSubscribeClosed(String s) {
-        if(mDebug){
-            Log.e(TAG, "OnRtcSubscribeClosed: " +s );
-        }
     }
 
     @Override
     public void onRtcOpenRemoteRender(String peerId, VideoTrack remoteTrack) {
-        mVideoView.OpenRemoteRender(peerId,remoteTrack);
-        if(mDebug)
-            Log.e(TAG, "onRtcOpenRemoteRender: "+peerId);
+        mVideoView.OpenRemoteRender(peerId, remoteTrack);
+
+        if (mDebug) {
+            Log.e(TAG, "onRtcOpenRemoteRender: " + peerId);
+        }
+        updateImageFlag();
     }
 
     @Override
     public void onRtcRemoveRemoteRender(String peerId) {
-        if(mDebug)
-            Log.e(TAG, "onRtcRemoveRemoteRender: "+peerId);
+        if (mDebug)
+            Log.e(TAG, "onRtcRemoveRemoteRender: " + peerId);
         mVideoView.RemoveRemoteRender(peerId);
     }
 
     @Override
     public void onRtcOpenLocalRender(VideoTrack localTrack) {
-        if(mDebug)
+        if (mDebug)
             Log.e(TAG, "onRtcOpenLocalRender: ");
         mVideoView.OpenLocalRender(localTrack);
     }
@@ -1017,104 +1023,129 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
     @Override
     public void onRequesageMsg(ReqSndMsgEntity requestMsg) {
         super.onRequesageMsg(requestMsg);
-        if(mDebug){
-            Log.e(TAG, "onRequesageMsg: "+requestMsg.toString());
+        if (mDebug) {
+            Log.e(TAG, "onRequesageMsg: " + requestMsg.toString());
         }
-
         int tags = requestMsg.getTags();
         final String message = requestMsg.getCont();
         final String name = requestMsg.getNname();
         String from = requestMsg.getFrom();
-
-        if(mDebug){
-            Log.e(TAG, "onRequesageMsg: "+"tags "+tags+" message "+message+" name "+name
-            +" from "+from);
+        if (mDebug) {
+            Log.e(TAG, "onRequesageMsg: " + "tags " + tags + " message " + message + " name " + name + " from " + from);
         }
-        //int messagetype = requestMsg.getMtype();
-        //int cmd = requestMsg.getCmd();
+        MessageTagsDistribute(tags, message, name);
+        numberOfDisplay(requestMsg.getNmem());
+    }
 
-        switch (tags){
+
+    private void numberOfDisplay(int mennum) {
+        if (mennum > 1) {
+            MCSENDTAGS_SUBSCRIBE = true;
+            mTvRemind.setVisibility(View.GONE);
+        } else {
+            MCSENDTAGS_SUBSCRIBE = false;
+            mTvRemind.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void MessageTagsDistribute(int tags, String message, String name) {
+        switch (tags) {
             case JMClientType.MCSENDTAGS_TALK://1
-
-                ChatMessage to = new ChatMessage(Type.INPUT, message, name, System.currentTimeMillis() + "");
-                mDatas.add(to);
-                mAdapter.notifyDataSetChanged();
-                mChatView.setSelection(mDatas.size() - 1);
-                mMsg.setText("");
-                if (mMessageShowFlag) {
-                    leaveMessageDealWith();
-                    //addAutoView(message, name);
-                }
+                mcsendtags_talk(message, name);
                 break;
-
             case JMClientType.MCSENDTAGS_ENTER://2
-                // mTvRemind.setVisibility(View.GONE);
+                 //mTvRemind.setVisibility(View.GONE);
                 break;
-
             case JMClientType.MCSENDTAGS_LEAVE://3
                 break;
-
             case JMClientType.MCSENDTAGS_SUBSCRIBE://4
-                MCSENDTAGS_SUBSCRIBE = true;
-                mTvRemind.setVisibility(View.GONE);
-                if(mAnyM2Mutlier!=null)
-                    mAnyM2Mutlier.Subscribe(message, true);
-                else if(mDebug)
-                    Log.e(TAG, "onRequesageMsg: "+" mAnyM2Mutlier = = null ");
+                mcsendtags_subscribe(message);
                 break;
-
             case JMClientType.MCSENDTAGS_UNSUBSCRIBE://5
-                if(mAnyM2Mutlier!=null){
-                    mVideoView.RemoveRemoteRender(message);
-                    mAnyM2Mutlier.UnSubscribe(message);
-                } else if (mDebug)
-                    Log.e(TAG, "onRequesageMsg: " + " mAnyM2Mutlier = = null ");
+                mcsendtags_unsubscribe(message);
                 break;
-
-
             case JMClientType.MCSENDTAGS_AUDIOSET://6
-                if(message!=null){
-                    try {
-                        JSONObject json = new JSONObject(message);
-                        String media = json.getString("Media");
-                        String publishId = json.getString("PublishId");
-                        Log.e(TAG, "onRequesageMsg: media "+media +" publishId "+publishId);
-                        if(media.equals("Open")){
-                            mVideoView.updateRemoteVoiceImage(publishId,true);
-                        }else if(media.equals("Close")){
-                            mVideoView.updateRemoteVoiceImage(publishId,false);
-                        }
-
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-
-                }
-
+                mcsendtags_audioset(message);
                 break;
             case JMClientType.MCSENDTAGS_VIDEOSET://7
-                if(message!=null){
-                    try {
-                        JSONObject json = new JSONObject(message);
-                        String media = json.getString("Media");
-                        String publishId = json.getString("PublishId");
-                        Log.e(TAG, "onRequesageMsg: media "+media +" publishId "+publishId);
-                        if(media.equals("Open")){
-                            mVideoView.updateRemoteVideoImage(publishId,true);
-                        }else if(media.equals("Close")){
-                            mVideoView.updateRemoteVideoImage(publishId,false);
-                        }
-
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-
-                }
+                mcsendtags_videoset(message);
                 break;
         }
-
-
     }
+
+   private void mcsendtags_subscribe(String message) {
+        MCSENDTAGS_SUBSCRIBE = true;
+        mTvRemind.setVisibility(View.GONE);
+/*        if (mAnyM2Mutlier != null)
+            mAnyM2Mutlier.Subscribe(message, true);
+        else if (mDebug)
+            Log.e(TAG, "onRequesageMsg: " + " mAnyM2Mutlier = = null ");*/
+    }
+
+    private void mcsendtags_unsubscribe(String message) {
+        if (mAnyM2Mutlier != null) {
+            mVideoView.RemoveRemoteRender(message);
+           // mAnyM2Mutlier.UnSubscribe(message);
+        } else if (mDebug)
+            Log.e(TAG, "onRequesageMsg: " + " mAnyM2Mutlier = = null ");
+    }
+
+    private void mcsendtags_audioset(String message) {
+        if (message != null) {
+            try {
+                JSONObject json = new JSONObject(message);
+                String media = json.getString("Media");
+                String publishId = json.getString("PublishId");
+                Log.e(TAG, "onRequesageMsg: media " + media + " publishId " + publishId);
+
+                if (media.equals("Open")) {
+                    mVideoView.updateRemoteVoiceImage(publishId, true);
+                    mVoiceSetting.put(publishId,true);
+                } else if (media.equals("Close")) {
+                    mVideoView.updateRemoteVoiceImage(publishId, true);
+                    mVoiceSetting.put(publishId,false);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+        }
+    }
+
+    private void mcsendtags_videoset(String message) {
+        if (message != null) {
+            try {
+                JSONObject json = new JSONObject(message);
+                String media = json.getString("Media");
+                String publishId = json.getString("PublishId");
+                Log.e(TAG, "onRequesageMsg: media " + media + " publishId " + publishId);
+                if (media.equals("Open")) {
+                    mVideoView.updateRemoteVoiceImage(publishId, true);
+                    mVideoSetting.put(publishId,true);
+                } else if (media.equals("Close")) {
+                    mVideoView.updateRemoteVoiceImage(publishId, true);
+                    mVideoSetting.put(publishId,false);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void mcsendtags_talk(String message, String name) {
+        ChatMessage to = new ChatMessage(Type.INPUT, message, name, System.currentTimeMillis() + "");
+        mDatas.add(to);
+        mAdapter.notifyDataSetChanged();
+        mChatView.setSelection(mDatas.size() - 1);
+        mMsg.setText("");
+        if (mMessageShowFlag) {
+            leaveMessageDealWith();
+            //addAutoView(message, name);
+        }
+    }
+
+
+
     private void netWorkTypeStart(int type) {
         if (type == NetType.TYPE_NULL.ordinal()) {
             mNetErrorSweetAlertDialog.show();
@@ -1133,37 +1164,46 @@ public class MeetingActivity extends MeetingBaseActivity implements M2MultierEve
     };
 
 
-
     /**
      * For EventBus callback.
      */
     public void onEventMainThread(Message msg) {
         switch (EventType.values()[msg.what]) {
             case MSG_MESSAGE_RECEIVE:
-
                 break;
             case MSG_GET_MEETING_MSG_LIST_SUCCESS:
                 mUiHandler.sendEmptyMessage(MESSAGE_UPDATE);
-                if(mDebug)
-                    Log.e(TAG, "onEventMainThread: "+ "MSG_GET_MEETING_MSG_LIST_SUCCESS ");
+                if (mDebug)
+                    Log.e(TAG, "onEventMainThread: " + "MSG_GET_MEETING_MSG_LIST_SUCCESS ");
                 break;
             case MSG_GET_MEETING_MSG_LIST_FAILED:
-                if(mDebug)
-                    Log.e(TAG, "onEventMainThread: "+ "MSG_GET_MEETING_MSG_LIST_FAILED");
-
+                if (mDebug)
+                    Log.e(TAG, "onEventMainThread: " + "MSG_GET_MEETING_MSG_LIST_FAILED");
                 break;
             case MSG_NET_WORK_TYPE:
                 if (mDebug)
                     Log.e(TAG, "MSG_NET_WORK_TYPE");
                 int type = msg.getData().getInt("net_type");
                 netWorkTypeStart(type);
+                msgSenderLeave();
                 break;
-
-
+            case MSG_NOTIFICATION_MEETINGID_EQUAL:
+                if (mDebug)
+                    Log.e(TAG, "MSG_NOTIFICATION_MEETINGID_EQUAL");
+                Intent resultIntent = new Intent(this, MeetingActivity.class);
+                startActivity(resultIntent);
+                break;
+            case MSG_NOTIFICATION_MEETING_CLOSE_MAIN:
+                if (mDebug)
+                    Log.e(TAG, "MSG_NOTIFICATION_MEETING_CLOSE_MAIN " + msg.getData().toString());
+                msgSenderLeave();
+                msg.what = EventType.MSG_NOTIFICATION_MEETING_CLOSE.ordinal();
+                EventBus.getDefault().post(msg);
             default:
                 break;
         }
     }
+
 
 
 }
