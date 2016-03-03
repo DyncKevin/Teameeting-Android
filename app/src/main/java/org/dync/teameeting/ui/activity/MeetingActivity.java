@@ -1,19 +1,23 @@
 package org.dync.teameeting.ui.activity;
 
 import android.animation.Animator;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.graphics.Rect;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -33,6 +37,7 @@ import org.dync.teameeting.R;
 import org.dync.teameeting.TeamMeetingApp;
 import org.dync.teameeting.bean.ChatMessage;
 import org.dync.teameeting.bean.ChatMessage.Type;
+import org.dync.teameeting.bean.MessageList;
 import org.dync.teameeting.bean.MessageListEntity;
 import org.dync.teameeting.bean.ReqSndMsgEntity;
 import org.dync.teameeting.db.CRUDChat;
@@ -47,11 +52,13 @@ import org.dync.teameeting.ui.helper.DialogHelper;
 import org.dync.teameeting.ui.helper.MeetingAnim;
 import org.dync.teameeting.ui.helper.MeetingAnim.AnimationEndListener;
 import org.dync.teameeting.ui.helper.ShareHelper;
+import org.dync.teameeting.utils.ScreenUtils;
 import org.dync.teameeting.utils.VideoViews;
 import org.dync.teameeting.widgets.PopupWindowCustom;
 import org.dync.teameeting.widgets.PopupWindowCustom.OnPopupWindowClickListener;
 import org.dync.teameeting.widgets.ReFlashListView;
 import org.dync.teameeting.widgets.RoomControls;
+import org.dync.teameeting.widgets.VitualKey;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.webrtc.VideoTrack;
@@ -70,7 +77,7 @@ import de.greenrobot.event.EventBus;
  *         2015-12-11 5:02:32
  */
 
-public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, ReFlashListView.IReflashListener {
+public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, ReFlashListView.IReflashListener{
     // Local preview screen position before call is connected.
     private static final boolean mDebug = TeamMeetingApp.mIsDebug;
     private static final String TAG = "MeetingActivity";
@@ -83,7 +90,8 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
     private MeetingAnim mMettingAnim;
     private ImageButton mChatButton, mInviteButton;
     private RoomControls mControlLayout;
-    private RelativeLayout mTopbarLayout, mParentLayout;
+    private RelativeLayout mTopbarLayout;
+    private VitualKey mParentLayout;
     private ImageButton mVoiceButton, mCameraButton, mHangUpButton,
             mSwitchCameraButton, mCameraOffButton;
     private boolean mMeetingCameraFlag = true, mMeetingCameraOffFlag = true, mMeetingVoiceFlag = true;
@@ -189,7 +197,6 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.e(TAG, "onCreate:123 ");
         instance = this;
         initView();
         inintData();
@@ -222,7 +229,8 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         }*/
         mAnyM2Mutlier = new AnyrtcMeet(this, this);
 
-
+        GLSurfaceView surfaceView = (GLSurfaceView) findViewById(R.id.glview_call);
+       // surfaceView.setc
 
         Intent intent = getIntent();
         mMeetingId = intent.getStringExtra("meetingId");
@@ -276,7 +284,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
     private void initView() {
 
         // Create UI controls.
-        mParentLayout = (RelativeLayout) findViewById(R.id.meet_parent);
+        mParentLayout = (VitualKey) findViewById(R.id.meet_parent);
         mTopbarLayout = (RelativeLayout) findViewById(R.id.rl_meeting_topbar);
         mControlLayout = (RoomControls) findViewById(R.id.rl_meeting_control);
         tvDuoyu = (TextView) findViewById(R.id.tv_duoyu);
@@ -302,6 +310,8 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         mSwitchCameraButton.setOnClickListener(onClickListener);
         mCameraOffButton.setOnClickListener(onClickListener);
 
+        mParentLayout.setInterface(mLayoutKeyChange);
+
         // Chat ui inint
         mTvMessageCount = (TextView) findViewById(R.id.tv_message_count);
         mChatLayout = (RelativeLayout) findViewById(R.id.rl_chating);
@@ -311,7 +321,6 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         mMsg = (EditText) findViewById(R.id.et_chat_msg);
         mSendMessage.setOnClickListener(onClickListener);
         mChatClose.setOnClickListener(onClickListener);
-
         //下拉刷新
         // initSwipeRefreshLayout();
         mAdapter = new ChatMessageAdapter(this, mDatas);
@@ -330,13 +339,14 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
             case MotionEvent.ACTION_DOWN:
                 downX = event.getX();
                 downY = event.getY();
-                Log.e(TAG, downX + "onTouchEvent " + downY);
+                Log.e(TAG, downX + "onTouchEvent ACTION_DOWN " + downY);
+
                 break;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
                 float moveX = event.getX() - downX;
                 float moveY = event.getY() - downY;
-                Log.e(TAG, moveY + "onTouchEvent " + moveX);
+                Log.e(TAG, moveY + "onTouchEvent ACTION_UP " + moveX);
                 if (Math.abs(moveX) > Math.abs(moveY) && TeamMeetingApp.isPad) {
                     chatLayoutControl(moveX);
                 } else {
@@ -569,11 +579,70 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
                         }
                     }, 400);
                     break;
+
             }
         }
 
 
     };
+
+    /**
+     * Solve the problem of hide the virtual keyboard
+     * @param ev
+     * @return
+     */
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        Log.e(TAG, "dispatchTouchEvent: "+ super.dispatchTouchEvent(ev)+" ev.getAction() "+ev.getAction() );
+
+        if (ev.getAction() == MotionEvent.ACTION_DOWN) {
+           // View v = getCurrentFocus();
+
+            if (isShouldHideInput(mMsg, ev)) {
+
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                if (imm != null) {
+                    imm.hideSoftInputFromWindow(mMsg.getWindowToken(), 0);
+                }
+                //return false;
+            }
+           // return false;
+            return super.dispatchTouchEvent(ev);
+        }
+        // Essential, otherwise all the components are there won't be TouchEvent
+        if (getWindow().superDispatchTouchEvent(ev)) {
+            Log.e(TAG, "dispatchTouchEvent: "+" getWindow() ");
+            return true;
+        }
+       // return onTouchEvent(ev);
+        return false;
+    }
+
+    /**
+     * isShouldHideInput
+     * @param v
+     * @param event
+     * @return
+     */
+    private  boolean isShouldHideInput(View v, MotionEvent event) {
+        if (v != null && (v instanceof EditText)) {
+            int[] leftTop = { 0, 0 };
+            //To obtain input box's current location location to obtain input box's current location
+            v.getLocationInWindow(leftTop);
+            int left = leftTop[0];
+            int top = leftTop[1];
+            int bottom = top + v.getHeight();
+            int right = left + v.getWidth();
+            if (event.getX() > left && event.getX() < right
+                    && event.getY() > top && event.getY() < bottom) {
+                // Click on the input box area, click keep EditText events
+                return false;
+            } else {
+                return true;
+            }
+        }
+        return false;
+    }
 
     /**
      * msgSenderLeave
@@ -822,7 +891,6 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
     protected void onDestroy() {
         // TODO Auto-generated method stub
 
-        Log.e(TAG, "onDestroy: ");
         List<String> activityList = TeamMeetingApp.getActivityList();
         activityList.clear();
         mVideoView.CloseLocalRender();
@@ -833,9 +901,29 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
             }
         }
 
-
         super.onDestroy();
     }
+
+    /**
+     * VitualKey Change
+     */
+    private VitualKey.LayoutKeyChange mLayoutKeyChange = new VitualKey.LayoutKeyChange() {
+        @Override
+        public void onLayoutKeyChange(int b) {
+
+            int screenHeight = ScreenUtils.getScreenHeight(MeetingActivity.this);
+/*            if(mDebug)
+            Log.e(TAG, "onLayoutKeyChange: "+" onLayoutKeyChange "+screenHeight);*/
+
+            // Vitual keymap
+            if(screenHeight-b>300){
+                mChatView.setSelection(mDatas.size() - 1);
+            }// Vitual key
+            else if (mVideoView != null) {
+                mVideoView.onScreenChanged();
+            }
+        }
+    };
 
     /**
      * chat data onReflash
@@ -891,52 +979,6 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
      * For M2MultierEvents callback.
      * All callback is running run handle thread, so could update ui directly.
      */
-/*    @Override
-    public void OnRtcPublishOK(String publishId, String rtmpUrl, String hlsUrl) {
-        int code = mMsgSender.TMNotifyMsg(mMeetingId, mRname, JMClientType.MCSENDTAGS_SUBSCRIBE, publishId);
-        mPublishId = publishId;
-        if (mDebug) {
-            if (code >= 0)
-                Log.e(TAG, "PublishOK: Successed ");
-            else
-                Log.e(TAG, "PublishOK: failed ");
-        }
-    }
-
-    @Override
-    public void OnRtcPublishFailed(int i, String s) {
-        if (mDebug) {
-            Log.e(TAG, "OnRtcPublishFailed: ");
-        }
-    }
-
-    @Override
-    public void OnRtcPublishClosed() {
-        if (mDebug) {
-            Log.e(TAG, "OnRtcPublishClosed: ");
-        }
-    }
-
-    @Override
-    public void OnRtcSubscribeOK(String s) {
-        if (mDebug) {
-            Log.e(TAG, "OnRtcSubscribeOK: ");
-        }
-    }
-
-    @Override
-    public void OnRtcSubscribeFailed(String s, int i, String s1) {
-        if (mDebug) {
-            Log.e(TAG, "OnRtcSubscribeFailed: ");
-        }
-    }
-
-    @Override
-    public void OnRtcSubscribeClosed(String s) {
-        if (mDebug) {
-            Log.e(TAG, "OnRtcSubscribeClosed: " + s);
-        }
-    }*/
 
     @Override
     public void OnRtcJoinMeetOK(String s) {
@@ -991,8 +1033,19 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         if (mDebug) {
             Log.e(TAG, "onRequesageMsg: " + "tags " + tags + " message " + message + " name " + name + " from " + from);
         }
-
         MessageTagsDistribute(tags, message, name);
+        numberOfDisplay(requestMsg.getNmem());
+    }
+
+
+    private void numberOfDisplay(int mennum) {
+        if (mennum > 1) {
+            MCSENDTAGS_SUBSCRIBE = true;
+            mTvRemind.setVisibility(View.GONE);
+        } else {
+            MCSENDTAGS_SUBSCRIBE = false;
+            mTvRemind.setVisibility(View.VISIBLE);
+        }
     }
 
     private void MessageTagsDistribute(int tags, String message, String name) {
@@ -1001,7 +1054,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
                 mcsendtags_talk(message, name);
                 break;
             case JMClientType.MCSENDTAGS_ENTER://2
-                // mTvRemind.setVisibility(View.GONE);
+                 //mTvRemind.setVisibility(View.GONE);
                 break;
             case JMClientType.MCSENDTAGS_LEAVE://3
                 break;
@@ -1150,6 +1203,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
                 break;
         }
     }
+
 
 
 }
