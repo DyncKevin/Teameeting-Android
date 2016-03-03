@@ -4,20 +4,17 @@ import android.animation.Animator;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.graphics.Rect;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -30,14 +27,12 @@ import android.widget.Toast;
 
 import com.nineoldandroids.view.ViewPropertyAnimator;
 
-import org.anyrtc.AnyrtcM2Mutlier;
 import org.anyrtc.AnyrtcMeet;
 import org.anyrtc.common.MeetEvents;
 import org.dync.teameeting.R;
 import org.dync.teameeting.TeamMeetingApp;
 import org.dync.teameeting.bean.ChatMessage;
 import org.dync.teameeting.bean.ChatMessage.Type;
-import org.dync.teameeting.bean.MessageList;
 import org.dync.teameeting.bean.MessageListEntity;
 import org.dync.teameeting.bean.ReqSndMsgEntity;
 import org.dync.teameeting.db.CRUDChat;
@@ -678,7 +673,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
                 try {
                     json.put("PublishId", mPublishId);
                     json.put("Media", "Open");
-                    code = mMsgSender.TMNotifyMsg(mMeetingId, mRname, JMClientType.MCSENDTAGS_VIDEOSET, json.toString());
+                    //code = mMsgSender.TMNotifyMsg(mMeetingId, mRname, JMClientType.MCSENDTAGS_VIDEOSET, json.toString());
 
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -755,7 +750,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         try {
             json.put("PublishId", mPublishId);
             json.put("Media", "Close");
-            code = mMsgSender.TMNotifyMsg(mMeetingId, mRname, JMClientType.MCSENDTAGS_VIDEOSET, json.toString());
+            //code = mMsgSender.TMNotifyMsg(mMeetingId, mRname, JMClientType.MCSENDTAGS_VIDEOSET, json.toString());
 
         } catch (JSONException e) {
             e.printStackTrace();
@@ -786,7 +781,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
                 mVideoView.updateLocalVoiceImage(false);
                 mAnyM2Mutlier.SetLocalAudioEnabled(false);
                 json.put("Media", "Close");
-                code = mMsgSender.TMNotifyMsg(mMeetingId, mRname, JMClientType.MCSENDTAGS_AUDIOSET, json.toString());
+                //code = mMsgSender.TMNotifyMsg(mMeetingId, mRname, JMClientType.MCSENDTAGS_AUDIOSET, json.toString());
 
 
             } else {
@@ -795,7 +790,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
                 mVideoView.updateLocalVoiceImage(true);
                 mAnyM2Mutlier.SetLocalAudioEnabled(true);
                 json.put("Media", "Open");
-                code = mMsgSender.TMNotifyMsg(mMeetingId, mRname, JMClientType.MCSENDTAGS_AUDIOSET, json.toString());
+                //code = mMsgSender.TMNotifyMsg(mMeetingId, mRname, JMClientType.MCSENDTAGS_AUDIOSET, json.toString());
             }
             mMeetingVoiceFlag = !mMeetingVoiceFlag;
 
@@ -1058,18 +1053,20 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
                 break;
             case JMClientType.MCSENDTAGS_LEAVE://3
                 break;
-            case JMClientType.MCSENDTAGS_SUBSCRIBE://4
-                mcsendtags_subscribe(message);
+            default:
                 break;
-            case JMClientType.MCSENDTAGS_UNSUBSCRIBE://5
-                mcsendtags_unsubscribe(message);
-                break;
-            case JMClientType.MCSENDTAGS_AUDIOSET://6
-                mcsendtags_audioset(message);
-                break;
-            case JMClientType.MCSENDTAGS_VIDEOSET://7
-                mcsendtags_videoset(message);
-                break;
+            //case JMClientType.MCSENDTAGS_SUBSCRIBE://4
+            //    mcsendtags_subscribe(message);
+            //    break;
+            //case JMClientType.MCSENDTAGS_UNSUBSCRIBE://5
+            //    mcsendtags_unsubscribe(message);
+            //    break;
+            //case JMClientType.MCSENDTAGS_AUDIOSET://6
+            //    mcsendtags_audioset(message);
+            //    break;
+            //case JMClientType.MCSENDTAGS_VIDEOSET://7
+            //    mcsendtags_videoset(message);
+            //    break;
         }
     }
 
