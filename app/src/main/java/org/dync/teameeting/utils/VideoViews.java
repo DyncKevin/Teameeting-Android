@@ -2,8 +2,6 @@ package org.dync.teameeting.utils;
 
 import android.app.Activity;
 import android.opengl.GLSurfaceView;
-import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -11,12 +9,9 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
-import org.anyrtc.Anyrtc;
-import org.anyrtc.m2multier.M2MSubscriber;
 import org.anyrtc.util.AppRTCUtils;
 import org.dync.teameeting.R;
 import org.dync.teameeting.TeamMeetingApp;
-import org.dync.teameeting.bean.ChatMessage;
 import org.webrtc.RendererCommon;
 import org.webrtc.VideoRenderer;
 import org.webrtc.VideoRendererGui;
@@ -109,14 +104,14 @@ public class VideoViews implements View.OnTouchListener{
             mVoiceView.setImageResource(R.drawable.mic_muted);
             mVoiceView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
             ViewGroup.LayoutParams layoutParamsVoice = new RelativeLayout.LayoutParams(width,height);
-            mParentLayout.addView(mVoiceView,layoutParamsVoice);
+            mParentLayout.addView(mVoiceView,1,layoutParamsVoice);
             mVoiceView.setVisibility(View.GONE);
 
             mVideoView = new ImageView(mContent);
             mVideoView.setImageResource(R.drawable.video_close_small);
             mVideoView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
             ViewGroup.LayoutParams layoutParamsVideo = new RelativeLayout.LayoutParams(width,height);
-            mParentLayout.addView(mVideoView,layoutParamsVideo);
+            mParentLayout.addView(mVideoView,1,layoutParamsVideo);
             mVideoView.setVisibility(View.GONE);
 
         }
@@ -235,7 +230,13 @@ public class VideoViews implements View.OnTouchListener{
 
     public void OpenRemoteRender(String peerId, VideoTrack track) {
 
-
+        if(mRemoteRenders.size() == 0){
+            SUB_WIDTH = 24;
+            SUB_HEIGHT = 18;
+        }else {
+            SUB_WIDTH = 18;
+            SUB_HEIGHT = 16;
+        }
 
         VideoView remoteRender = mRemoteRenders.get(peerId);
         if(remoteRender == null) {
@@ -401,15 +402,24 @@ public class VideoViews implements View.OnTouchListener{
      */
     public void onScreenChanged(){
         if(mDebug)
-            Log.e(TAG, "onScreenChanged: " );
+            Log.e(TAG, "onScreenChanged: " +mRemoteRenders.size() );
         mScreenWidth =ScreenUtils.getScreenWidth(mContent);
         mScreenHeight =ScreenUtils.getScreenHeight(mContent)-ScreenUtils.getStatusHeight(mContent);
 
         if(mScreenHeight>mScreenWidth){
 
             SUB_Y = 65;
-            SUB_WIDTH = 18;
-            SUB_HEIGHT = 16;
+
+            if(mRemoteRenders.size() == 1){
+                SUB_WIDTH = 24;
+                SUB_HEIGHT = 18;
+            }else {
+
+                SUB_WIDTH = 18;
+                SUB_HEIGHT = 16;
+            }
+
+
 
         }else{
 

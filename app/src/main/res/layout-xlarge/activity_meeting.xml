@@ -1,18 +1,14 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<org.dync.teameeting.widgets.VitualKey
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/meet_parent"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:animateLayoutChanges="true" >
+    android:animateLayoutChanges="true">
 
     <android.opengl.GLSurfaceView
         android:id="@+id/glview_call"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
-    <!-- TopBar -->
-
-
-    <!-- Control Layout -->
 
     <org.dync.teameeting.widgets.RoomControls
         android:id="@+id/rl_meeting_control"
@@ -23,7 +19,7 @@
         android:layout_marginBottom="20dp"
         android:background="@color/transparent"
         android:orientation="horizontal"
-        android:padding="10dp" >
+        android:padding="10dp">
 
         <ImageButton
             android:id="@+id/meeting_camera"
@@ -87,8 +83,9 @@
         android:id="@+id/rl_chating"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
+        android:visibility="visible"
         android:layout_marginLeft="@dimen/chact_margin_left_margin"
-         >
+      >
 
         <include layout="@layout/include_chatting" />
     </RelativeLayout>
@@ -111,14 +108,12 @@
         android:layout_centerInParent="true"
         android:scaleType="centerInside"
         android:src="@drawable/video_close"
-        android:visibility="gone"
-        />
+        android:visibility="gone" />
 
     <RelativeLayout
         android:id="@+id/rl_meeting_topbar"
         style="@style/TopBar_Style"
-        android:background="@color/totil_bar_back_alpha_meeting"
-        >
+        android:background="@color/totil_bar_back_alpha_meeting">
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -129,19 +124,18 @@
                 android:id="@+id/imgbtn_chat"
                 style="@style/Btn_left"
                 android:layout_gravity="center_vertical"
-                android:src="@drawable/btn_chat"/>
+                android:src="@drawable/btn_chat" />
 
             <TextView
                 android:id="@+id/tv_message_count"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/unread_count_bg"
-                android:textColor="@color/white"
                 android:layout_marginLeft="20dp"
-                android:textSize="12sp"
-                android:visibility="gone"
+                android:background="@drawable/unread_count_bg"
                 android:gravity="center"
-                />
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:visibility="gone" />
 
 
         </RelativeLayout>
@@ -161,4 +155,4 @@
     </RelativeLayout>
 
 
-</RelativeLayout>
+</org.dync.teameeting.widgets.VitualKey>
