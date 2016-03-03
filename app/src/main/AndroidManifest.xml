@@ -81,6 +81,18 @@
 
                 <data android:scheme="teameeting" /><!-- 打开以teameeting协议的URL,这个自己随便定义。 -->
             </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:scheme="about" />
+                <data android:scheme="javascript" />
+            </intent-filter>
         </activity>
 
         <activity
