@@ -49,6 +49,7 @@ public class TeamMeetingApp extends Application {
     public static TeamMeetingApp getTeamMeetingApp() {
         return mTeamMeetingApp;
     }
+
     /*chat message deal with*/
     public static TMMsgSender getmMsgSender() {
         return mMsgSender;
@@ -85,6 +86,7 @@ public class TeamMeetingApp extends Application {
         }
         JPushInterface.setDebugMode(true);
         JPushInterface.init(this);
+
         Anyrtc.InitAnyrtc("mzw0001", "defq34hj92mxxjhaxxgjfdqi1s332dd", "d74TcmQDMB5nWx9zfJ5al7JdEg3XwySwCkhdB9lvnd1", "org.dync.app");
     }
 

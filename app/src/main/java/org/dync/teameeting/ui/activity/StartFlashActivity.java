@@ -182,7 +182,7 @@ public class StartFlashActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start_flash);
-
+        JPushInterface.stopPush(this);
         inintView();
         initData();
         setTag();
