@@ -468,7 +468,7 @@ public class MainActivity extends BaseActivity {
 
                     break;
                 case R.id.ibtn_join_meeting:
-                    Intent intent = new Intent(mContext, JoinMeetingActivity.class);
+                   Intent intent = new Intent(mContext, JoinMeetingActivity.class);
                     startActivity(intent);
                     break;
                 default:
@@ -1003,7 +1003,7 @@ public class MainActivity extends BaseActivity {
                 if (mDebug)
                     Log.e(TAG, "MSG_NOTIFICATION_MEETING_CLOSE");
                 msg.what = ENTER_NEW_ROOM;
-                mUIHandler.sendMessageDelayed(msg, 2000);
+                mUIHandler.sendMessageDelayed(msg,5000);
                 break;
             case MSG_NOTIFICATION_MAIN:
                 if (mDebug)

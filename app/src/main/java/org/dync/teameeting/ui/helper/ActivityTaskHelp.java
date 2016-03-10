@@ -21,10 +21,12 @@ public class ActivityTaskHelp {
         Log.e("ActivityTaskHelp", "isPackageNameonResume: " + packageName);
         ActivityManager am = (ActivityManager) context.getSystemService(context.ACTIVITY_SERVICE);
         ComponentName cn = am.getRunningTasks(1).get(0).topActivity;
-        Log.e("e", "pkg:" + cn.getPackageName());
+        Log.e("ActivityTaskHelp", "pkg:" + cn.getPackageName());
         if (cn.getPackageName().equals(packageName)) {
+            Log.e("ActivityTaskHelp", "true: ");
             return true;
         }
+        Log.e("ActivityTaskHelp", "false: ");
         return false;
     }
 
@@ -65,7 +67,6 @@ public class ActivityTaskHelp {
         }
         return false;
     }
-
 
 
 }

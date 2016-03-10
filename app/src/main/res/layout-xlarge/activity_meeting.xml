@@ -5,8 +5,8 @@
     android:layout_height="match_parent"
     android:animateLayoutChanges="true">
 
-    <android.opengl.GLSurfaceView
-        android:id="@+id/glview_call"
+    <RelativeLayout
+        android:id="@+id/rl_videos"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
