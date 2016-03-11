@@ -128,7 +128,7 @@ public class VideoViews implements View.OnTouchListener{
                 } else {
                     marginLayoutParams.leftMargin = mScreenWidth * (x + SUB_WIDTH) / 100 - width;
                     marginLayoutParams.topMargin = mScreenHeight * y / 100;
-                  //  mVoiceClose.setVisibility(View.GONE);
+                    //  mVoiceClose.setVisibility(View.GONE);
                     mVoiceView.setVisibility(View.VISIBLE);
                     if(mDebug){
                         Log.e(TAG, "updateView: "+" marginLayoutParams.leftMargin "+marginLayoutParams.leftMargin+" marginLayoutParams.topMargin "+marginLayoutParams.topMargin );
@@ -148,24 +148,24 @@ public class VideoViews implements View.OnTouchListener{
 
             if(mVideoShowFalg){
 
-                    ViewGroup.MarginLayoutParams marginLayoutParams = (ViewGroup.MarginLayoutParams) mVideoView.getLayoutParams();
-                    if (Fullscreen()) {
-                        marginLayoutParams.leftMargin = mScreenWidth - width;
-                        marginLayoutParams.topMargin = 0;
-                        // mVoiceView.setVisibility(View.GONE);
-                        mVideoClose.setVisibility(View.VISIBLE);
-                        mVideoView.setVisibility(View.GONE);
-                    } else {
-                        marginLayoutParams.leftMargin = mScreenWidth * (x + SUB_WIDTH/2) / 100 - width/2;
-                        marginLayoutParams.topMargin = mScreenHeight * (y +SUB_HEIGHT/2)/ 100-height/2;
-                        //  mVoiceClose.setVisibility(View.GONE);
-                        mVideoView.setVisibility(View.VISIBLE);
-                        if(mDebug){
-                            Log.e(TAG, "updateView: "+" marginLayoutParams.leftMargin "+marginLayoutParams.leftMargin+" marginLayoutParams.topMargin "+marginLayoutParams.topMargin );
-                        }
+                ViewGroup.MarginLayoutParams marginLayoutParams = (ViewGroup.MarginLayoutParams) mVideoView.getLayoutParams();
+                if (Fullscreen()) {
+                    marginLayoutParams.leftMargin = mScreenWidth - width;
+                    marginLayoutParams.topMargin = 0;
+                    // mVoiceView.setVisibility(View.GONE);
+                    mVideoClose.setVisibility(View.VISIBLE);
+                    mVideoView.setVisibility(View.GONE);
+                } else {
+                    marginLayoutParams.leftMargin = mScreenWidth * (x + SUB_WIDTH/2) / 100 - width/2;
+                    marginLayoutParams.topMargin = mScreenHeight * (y +SUB_HEIGHT/2)/ 100-height/2;
+                    //  mVoiceClose.setVisibility(View.GONE);
+                    mVideoView.setVisibility(View.VISIBLE);
+                    if(mDebug){
+                        Log.e(TAG, "updateView: "+" marginLayoutParams.leftMargin "+marginLayoutParams.leftMargin+" marginLayoutParams.topMargin "+marginLayoutParams.topMargin );
                     }
+                }
 
-                    mVideoView.setLayoutParams(marginLayoutParams);
+                mVideoView.setLayoutParams(marginLayoutParams);
             }else{
                 if (Fullscreen()) {
                     mVideoClose.setVisibility(View.GONE);
