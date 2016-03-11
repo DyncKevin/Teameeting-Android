@@ -41,11 +41,21 @@ public class AnyRTCViews implements View.OnTouchListener, AnyRTCViewEvents {
     private static Activity mContent;
     private HashMap<String,Boolean> mVoiceSetting =new HashMap<String, Boolean>();
     private HashMap<String,Boolean> mVideoSetting =new HashMap<String, Boolean>();
-
+    private VideoViewPeopleNumEvent mVideoViewPeopleNumEvent;
 
     public interface VideoViewEvent {
         void OnScreenSwitch(String strBeforeFullScrnId, String strNowFullScrnId);
     }
+
+    public interface VideoViewPeopleNumEvent {
+        void OnPeopleNumChange(int peopleNum);
+    }
+
+    public void setVideoViewPeopleNumEvent(VideoViewPeopleNumEvent videoViewPeopleNumEvent){
+        mVideoViewPeopleNumEvent = videoViewPeopleNumEvent;
+    }
+
+
 
     protected static class VideoView {
         public String strPeerId;
@@ -559,6 +569,8 @@ public class AnyRTCViews implements View.OnTouchListener, AnyRTCViewEvents {
             if(mRemoteRenders.size() == 1) {
                 SwitchViewToFullscreen(remoteRender, mLocalRender);
             }
+
+            mVideoViewPeopleNumEvent.OnPeopleNumChange(mRemoteRenders.size());
         }
     }
 
@@ -585,6 +597,8 @@ public class AnyRTCViews implements View.OnTouchListener, AnyRTCViewEvents {
 
             mRemoteRenders.remove(peerId);
             updateVideoView();
+
+            mVideoViewPeopleNumEvent.OnPeopleNumChange(mRemoteRenders.size());
 
 
         }

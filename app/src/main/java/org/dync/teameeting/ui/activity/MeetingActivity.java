@@ -208,10 +208,11 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
 
         mIMM = (InputMethodManager) MeetingActivity.this.getSystemService(MainActivity.INPUT_METHOD_SERVICE);
 
-        // mAnyM2Mutlier = new AnyrtcM2Mutlier(this, this);
+
         mAnyrtcViews = new AnyRTCViews((RelativeLayout) findViewById(R.id.rl_videos),this,mCloseVoice,mCloseVideo);
-        // mVideoView = new VideoViews((GLSurfaceView) findViewById(R.id.glview_call), mParentLayout, mCloseVoice, mCloseVideo, this);
+        mAnyrtcViews.setVideoViewPeopleNumEvent(mVideoViewPeopleNumEvent);
         mAnyM2Mutlier = new AnyrtcMeet(this, this);
+
 
         Intent intent = getIntent();
         mMeetingId = intent.getStringExtra("meetingId");
@@ -854,6 +855,16 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         }
     };
 
+    private AnyRTCViews.VideoViewPeopleNumEvent mVideoViewPeopleNumEvent =new AnyRTCViews.VideoViewPeopleNumEvent() {
+        @Override
+        public void OnPeopleNumChange(int peopleNum) {
+            if(mDebug){
+                Log.e(TAG, "OnPeopleNumChange: peopleNum "+peopleNum );
+            }
+            numberOfDisplay(peopleNum);
+        }
+    };
+
     /**
      * chat data onReflash
      */
@@ -932,12 +943,12 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
             Log.e(TAG, "onRequesageMsg: " + "tags " + tags + " message " + message + " name " + name + " from " + from);
         }
         MessageTagsDistribute(tags, message, name);
-        numberOfDisplay(requestMsg.getNmem());
+        //numberOfDisplay(requestMsg.getNmem());
     }
 
 
     private void numberOfDisplay(int mennum) {
-        if (mennum > 1) {
+        if (mennum > 0) {
             MCSENDTAGS_SUBSCRIBE = true;
             mTvRemind.setVisibility(View.GONE);
         } else {
@@ -958,59 +969,11 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
                 break;
             default:
                 break;
-            //case JMClientType.MCSENDTAGS_SUBSCRIBE://4
-            //    mcsendtags_subscribe(message);
-            //    break;
-            //case JMClientType.MCSENDTAGS_UNSUBSCRIBE://5
-            //    mcsendtags_unsubscribe(message);
-            //    break;
-            //case JMClientType.MCSENDTAGS_AUDIOSET://6
-            //    mcsendtags_audioset(message);
-            //    break;
-            //case JMClientType.MCSENDTAGS_VIDEOSET://7
-            //    mcsendtags_videoset(message);
-            //    break;
-        }
-    }
-
-    private void mcsendtags_subscribe(String message) {
-        MCSENDTAGS_SUBSCRIBE = true;
-        mTvRemind.setVisibility(View.GONE);
-/*        if (mAnyM2Mutlier != null)
-            mAnyM2Mutlier.Subscribe(message, true);
-        else if (mDebug)
-            Log.e(TAG, "onRequesageMsg: " + " mAnyM2Mutlier = = null ");*/
-    }
-
-    private void mcsendtags_unsubscribe(String message) {
-        if (mAnyM2Mutlier != null) {
-            // mVideoView.RemoveRemoteRender(message);
-            // mAnyM2Mutlier.UnSubscribe(message);
-        } else if (mDebug)
-            Log.e(TAG, "onRequesageMsg: " + " mAnyM2Mutlier = = null ");
-    }
-
-    private void mcsendtags_audioset(String message) {
-        if (message != null) {
-            try {
-                JSONObject json = new JSONObject(message);
-                String media = json.getString("Media");
-                String publishId = json.getString("PublishId");
-                Log.e(TAG, "onRequesageMsg: media " + media + " publishId " + publishId);
-
-                if (media.equals("Open")) {
-                    //mVideoView.updateRemoteVoiceImage(publishId, true);
-                    mVoiceSetting.put(publishId, true);
-                } else if (media.equals("Close")) {
-                    //  mVideoView.updateRemoteVoiceImage(publishId, true);
-                    mVoiceSetting.put(publishId, false);
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
 
         }
     }
+
+
 
 
     private void mcsendtags_talk(String message, String name) {
