@@ -52,7 +52,7 @@ public class StartFlashActivity extends BaseActivity {
     private TMMsgSender mMsgSender;
     private boolean isNotifactionChack = false;
 
-    private final String mServer = "180.150.179.128";
+    private final String mServer = "message.anyrtc.io";
     //private final String mServer = "192.168.7.61";
     private final int mPort = 6630;
     private String mUserid;
@@ -143,7 +143,7 @@ public class StartFlashActivity extends BaseActivity {
                     logs = "Failed with errorCode = " + code;
                     Log.e(JPUSH, logs);
             }
-            showToast(logs, getApplicationContext());
+           // showToast(logs, getApplicationContext());
         }
     };
 
@@ -174,7 +174,7 @@ public class StartFlashActivity extends BaseActivity {
                     logs = "Failed with errorCode = " + code;
                     Log.e(JPUSH, logs);
             }
-            showToast(logs, getApplicationContext());
+            //showToast(logs, getApplicationContext());
         }
     };
 
@@ -182,7 +182,6 @@ public class StartFlashActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start_flash);
-
         inintView();
         initData();
         setTag();

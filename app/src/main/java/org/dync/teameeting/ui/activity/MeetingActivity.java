@@ -94,7 +94,6 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
     private PopupWindowCustom mPopupWindowCustom;
     private ShareHelper mShareHelper;
     private String mShareUrl;
-    private String mRname = "room name";
 
     private AnyRTCViews mAnyrtcViews;
     // Left distance of this control button relative to its parent
@@ -118,6 +117,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
     private Message closeMsg = null;
     private RelativeLayout mRlChatButton;
     private TextView tvDuoyu;
+    private String mRoomName;
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
@@ -212,19 +212,16 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
 
         // mAnyM2Mutlier = new AnyrtcM2Mutlier(this, this);
         mAnyrtcViews = new AnyRTCViews((RelativeLayout) findViewById(R.id.rl_videos));
-        // mVideoView = new VideoViews((GLSurfaceView) findViewById(R.id.glview_call), mParentLayout, mCloseVoice, mCloseVideo, this);
         mAnyM2Mutlier = new AnyrtcMeet(this, this);
-
 
         Intent intent = getIntent();
         mMeetingId = intent.getStringExtra("meetingId");
         mUserId = intent.getStringExtra("userId");
         mNotifTags = intent.getIntExtra("tags", 0);
-        String roomName = getIntent().getStringExtra("meetingName");
-        mTvRoomName.setText(roomName);
+        mRoomName = getIntent().getStringExtra("meetingName");
         String anyrtcId = intent.getStringExtra("anyrtcId");
-
-        mAnyM2Mutlier.Join("980988");
+        mTvRoomName.setText(mRoomName);
+        mAnyM2Mutlier.Join(anyrtcId);
         mAnyM2Mutlier.InitAnyRTCViewEvents(mAnyrtcViews);
 
 
@@ -240,7 +237,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
 
         leaveMessageDealWith();
 
-        int code = mMsgSender.TMOptRoom(JMClientType.MCCMD_ENTER, mMeetingId, mRname, "");
+        int code = mMsgSender.TMOptRoom(JMClientType.MCCMD_ENTER, mMeetingId, mRoomName, "");
         if (code >= 0) {
             if (mDebug) {
                 Log.e(TAG, "inintData: " + "TMEnterRoom Successed");
@@ -615,10 +612,9 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
             int left = leftTop[0];
             int top = leftTop[1];
             int bottom = top + v.getHeight();
-            int right = left + v.getWidth();
+            int right = ScreenUtils.getScreenWidth(getApplicationContext());
             if (event.getX() > left && event.getX() < right
                     && event.getY() > top && event.getY() < bottom) {
-                // Click on the input box area, click keep EditText events
                 return false;
             } else {
                 return true;
@@ -631,7 +627,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
      * msgSenderLeave
      */
     private void msgSenderLeave() {
-        int code = mMsgSender.TMOptRoom(JMClientType.MCCMD_LEAVE, mMeetingId, mRname, "");
+        int code = mMsgSender.TMOptRoom(JMClientType.MCCMD_LEAVE, mMeetingId, mRoomName, "");
         MeetingActivity.this.finish();
         if (code >= 0) {
             if (mDebug) {
@@ -738,7 +734,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         try {
             json.put("PublishId", mPublishId);
             json.put("Media", "Close");
-             //code = mMsgSender.TMNotifyMsg(mMeetingId, mRname, JMClientType.MCSENDTAGS_VIDEOSET, json.toString());
+            //code = mMsgSender.TMNotifyMsg(mMeetingId, mRname, JMClientType.MCSENDTAGS_VIDEOSET, json.toString());
 
         } catch (JSONException e) {
             e.printStackTrace();
@@ -816,7 +812,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
 
         //  mNetWork.pushMeetingMsg(getSign(), mMeetingId, "push message", "notification");
 
-        int code = mMsgSender.TMSndMsg(mMeetingId, mRname, pushMsg);
+        int code = mMsgSender.TMSndMsg(mMeetingId, mRoomName, pushMsg);
         if (code >= 0) {
             if (mDebug) {
                 Log.e(TAG, "sendMessageChat: " + "TMSndMsg Successed");
@@ -848,6 +844,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
 
     @Override
     public void onPause() {
+        Log.e(TAG, "onPause: ");
         super.onPause();
         mAnyM2Mutlier.OnPause();
     }
@@ -861,6 +858,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
 
     @Override
     protected void onStop() {
+        Log.e(TAG, "onStop: ");
         super.onStop();
 
     }
@@ -872,13 +870,12 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
             Log.e(TAG, "onDestroy: ");
         List<String> activityList = TeamMeetingApp.getActivityList();
         activityList.clear();
-        //mVideoView.CloseLocalRender();
-        {// Close all
-            if (mAnyM2Mutlier != null) {
-                mAnyM2Mutlier.Leave();
-                mAnyM2Mutlier = null;
-            }
+
+        if (mAnyM2Mutlier != null) {
+            mAnyM2Mutlier.Leave();
+            mAnyM2Mutlier = null;
         }
+
 
         super.onDestroy();
     }
