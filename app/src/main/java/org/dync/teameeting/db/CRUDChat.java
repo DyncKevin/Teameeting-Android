@@ -80,6 +80,7 @@ public class CRUDChat {
             String userId = cursor.getString(cursor.getColumnIndex(ChatCacheEntity.USERID));
             String content = cursor.getString(cursor.getColumnIndex(ChatCacheEntity.CONTENT));
             boolean isRead = cursor.getInt(cursor.getColumnIndex(ChatCacheEntity.ISREAD)) == 0 ? false : true;
+            cursor.close();
             return new ChatCacheEntity(meetingId, userId, content, sendtime, isRead);
         }
         return null;
@@ -112,7 +113,6 @@ public class CRUDChat {
         DeleteQuery<ChatCacheEntity> bd = qb.where(ChatCacheEntityDao.Properties.Meetingid.eq(meetingId)).buildDelete();
         bd.executeDeleteWithoutDetachingEntities();
         closeDB(session);
-
     }
 
 

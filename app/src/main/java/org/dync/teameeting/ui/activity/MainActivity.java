@@ -318,15 +318,10 @@ public class MainActivity extends BaseActivity {
 
         boolean pushStopped = JPushInterface.isPushStopped(this);
         if (mDebug)
-            Log.e(TAG, "onDestroy=--- !+pushStopped"+pushStopped);
-        JPushInterface.resumePush(this);
+            Log.e(TAG, "onDestroy=--- !+pushStopped" + pushStopped);
         LocalUserInfo.getInstance(this).setUserInfoBoolean(LocalUserInfo.MAIN_ACTIVE, false);
-
-         pushStopped = JPushInterface.isPushStopped(this);
-        if (mDebug)
-            Log.e(TAG, "onDestroy=--- MainAcitvity!+pushStopped"+pushStopped);
+        TeamMeetingApp.getmMsgSender().TMUnin();
         System.exit(0);
-
     }
 
 
@@ -578,7 +573,7 @@ public class MainActivity extends BaseActivity {
         public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
             String meetingName = mCreateRoom.getText().toString();
             if (meetingName.length() == 0 || meetingName == null) {
-                meetingName = "Untitled room";
+                return false;
             }
             mSign = getSign();
             if (mDebug)
