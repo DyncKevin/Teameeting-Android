@@ -11,8 +11,10 @@ import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.Settings.Secure;
-import android.util.Log;
 import android.widget.Toast;
+
+import com.squareup.leakcanary.LeakCanary;
+import com.squareup.leakcanary.RefWatcher;
 
 import org.anyrtc.Anyrtc;
 import org.dync.teameeting.bean.SelfData;
@@ -81,14 +83,18 @@ public class TeamMeetingApp extends Application {
         registerReceiver();
 
         isPad = ScreenUtils.isPad(this);
-        if (mDebug) {
-            Log.e(TAG, "onCreate: isPad" + isPad);
-        }
         JPushInterface.setDebugMode(true);
         JPushInterface.init(this);
-
+        refWatcher = LeakCanary.install(this);
         Anyrtc.InitAnyrtc("mzw0001", "defq34hj92mxxjhaxxgjfdqi1s332dd", "d74TcmQDMB5nWx9zfJ5al7JdEg3XwySwCkhdB9lvnd1", "org.dync.app");
     }
+
+    public static RefWatcher getRefWatcher(Context context) {
+        TeamMeetingApp application = (TeamMeetingApp) context.getApplicationContext();
+        return application.refWatcher;
+    }
+
+    private RefWatcher refWatcher;
 
     public Context getContext() {
         return context;
