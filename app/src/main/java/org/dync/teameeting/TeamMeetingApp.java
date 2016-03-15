@@ -1,5 +1,6 @@
 package org.dync.teameeting;
 
+import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.IntentFilter;
@@ -44,6 +45,15 @@ public class TeamMeetingApp extends Application {
 
     public static List<String> activityList = new ArrayList<String>();
 
+    public static Activity getMainActivity() {
+        return mainActivity;
+    }
+
+    public static void setMainActivity(Activity mainActivity) {
+        TeamMeetingApp.mainActivity = mainActivity;
+    }
+
+    public static Activity mainActivity ;
     public static List<String> getActivityList() {
         return activityList;
     }

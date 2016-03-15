@@ -148,7 +148,7 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         mContext = this;
         setContentView(R.layout.activity_main);
-
+        TeamMeetingApp.setMainActivity(this);
         initdata();
         inintLayout();
         if (mDebug) {
