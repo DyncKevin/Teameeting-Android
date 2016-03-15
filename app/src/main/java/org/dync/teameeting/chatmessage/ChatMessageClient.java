@@ -9,16 +9,19 @@ import com.orhanobut.logger.Logger;
 
 import org.dync.teameeting.R;
 import org.dync.teameeting.TeamMeetingApp;
+import org.dync.teameeting.bean.MeetingListEntity;
 import org.dync.teameeting.bean.ReqSndMsgEntity;
 import org.dync.teameeting.db.CRUDChat;
 import org.dync.teameeting.sdkmsgclient.jni.JMClientHelper;
 import org.dync.teameeting.sdkmsgclient.jni.JMClientType;
 import org.dync.teameeting.structs.EventType;
+import org.dync.teameeting.structs.HttpApiTpye;
 import org.dync.teameeting.ui.helper.ActivityTaskHelp;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import cn.jpush.android.api.JPushInterface;
@@ -100,7 +103,8 @@ public class ChatMessageClient implements JMClientHelper {
         notifyRequestMessage(reqSndMsgEntity);
 
         //Are push local news
-        if (!ActivityTaskHelp.isPackageNameonResume(context, context.getPackageName())) {
+        if (!ActivityTaskHelp.isPackageNameonResume(context, context.getPackageName())
+                && roomItemisNotifiation(reqSndMsgEntity.getRoom())) {
             sendPushNotifiaction(reqSndMsgEntity);
         }
     }
@@ -139,6 +143,18 @@ public class ChatMessageClient implements JMClientHelper {
 
     }
 
+    public boolean roomItemisNotifiation(String meetingID) {
+        List<MeetingListEntity> messageListEntityList = TeamMeetingApp.getmSelfData().getMeetingLists();
+        if (messageListEntityList != null && messageListEntityList.size() > 0) {
+            for (MeetingListEntity meetingListEntity : messageListEntityList) {
+                if (meetingID.equals(meetingListEntity.getMeetingid()) &&
+                        meetingListEntity.getPushable() == HttpApiTpye.pushableYes) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
     @Override
     public void OnGetMsg(String msg) {

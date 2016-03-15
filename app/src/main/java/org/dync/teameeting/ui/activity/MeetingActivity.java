@@ -198,7 +198,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         EventBus.getDefault().register(this);
 
-        mNetErrorSweetAlertDialog = DialogHelper.createNetErroDilaog(this, sweetClickListener);
+        mNetErrorSweetAlertDialog = DialogHelper.createNetErroDilaog(getApplicationContext(), sweetClickListener);
 
         mIMM = (InputMethodManager) MeetingActivity.this.getSystemService(MainActivity.INPUT_METHOD_SERVICE);
 
@@ -346,6 +346,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
             mChatLayoutShow = true;
             mMessageShowFlag = false;
             Anims.animateRightMarginTo(mChatLayout, 0, mChatLayout.getWidth() - tvDuoyu.getWidth(), showTime, Anims.ACCELERATE);
+            Anims.animateRightMarginTo(mControlLayout, 0, controllMove, showTime, Anims.ACCELERATE);
             Anims.animateRightMarginTo(mControlLayout, 0, controllMove, showTime, Anims.ACCELERATE);
             Anims.animateRightMarginTo(mTvRemind, 0, controllMove, showTime, Anims.ACCELERATE);
             // Anims.animateRightMarginTo(mTvRoomName, 0, controllMove, showTime, Anims.ACCELERATE);
@@ -817,9 +818,12 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
                 mAnyM2Mutlier = null;
             }
         }
+        mAnyrtcViews=null;
+        //TeamMeetingApp.getRefWatcher(TeamMeetingApp.getTeamMeetingApp().getContext()).watch(mAnyrtcViews);
+        TeamMeetingApp.getRefWatcher(TeamMeetingApp.getTeamMeetingApp().getContext()).watch(mCloseVoice);
 
         super.onDestroy();
-        TeamMeetingApp.getRefWatcher(TeamMeetingApp.getTeamMeetingApp().getContext()).watch(this);
+
     }
 
     /**
