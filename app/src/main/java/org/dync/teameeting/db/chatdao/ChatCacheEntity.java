@@ -16,6 +16,13 @@ public class ChatCacheEntity implements Serializable {
     private String sendtime;
     private Boolean isread;
 
+
+    public static String MEETINGID = "MEETINGID";
+    public static String USERID = "USERID";
+    public static String CONTENT = "CONTENT";
+    public static String SENDTIME = "SENDTIME";
+    public static String ISREAD = "ISREAD";
+
     public ChatCacheEntity() {
     }
 

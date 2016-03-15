@@ -315,9 +315,12 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        LocalUserInfo.getInstance(this).setUserInfoBoolean(LocalUserInfo.MAIN_ACTIVE, false);
+
+        boolean pushStopped = JPushInterface.isPushStopped(this);
         if (mDebug)
-            Log.e(TAG, "onDestroy=--- MainAcitvity!");
+            Log.e(TAG, "onDestroy=--- !+pushStopped" + pushStopped);
+        LocalUserInfo.getInstance(this).setUserInfoBoolean(LocalUserInfo.MAIN_ACTIVE, false);
+        TeamMeetingApp.getmMsgSender().TMUnin();
         System.exit(0);
     }
 
@@ -468,7 +471,7 @@ public class MainActivity extends BaseActivity {
 
                     break;
                 case R.id.ibtn_join_meeting:
-                   Intent intent = new Intent(mContext, JoinMeetingActivity.class);
+                    Intent intent = new Intent(mContext, JoinMeetingActivity.class);
                     startActivity(intent);
                     break;
                 default:
@@ -543,16 +546,16 @@ public class MainActivity extends BaseActivity {
         if (owner == 0) {
             mNetWork.getMeetingInfo(meetingId, JoinActType.JOIN_ENTER_ACTIVITY);
         } else {
-            statrMeetingActivity(meetingName, meetingId,anyrtcId);
+            statrMeetingActivity(meetingName, meetingId, anyrtcId);
         }
     }
 
-    private void statrMeetingActivity(String meetingName, String meetingId,String anyrtcId) {
+    private void statrMeetingActivity(String meetingName, String meetingId, String anyrtcId) {
         Intent intent = new Intent(mContext, MeetingActivity.class);
         intent.putExtra("meetingName", meetingName);
         intent.putExtra("meetingId", meetingId);
         intent.putExtra("userId", mUserId);
-        intent.putExtra("anyrtcId",anyrtcId);
+        intent.putExtra("anyrtcId", anyrtcId);
         if (isNotifactionChack) {
             intent.putExtra("tags", mNotifTags);
             isNotifactionChack = false;
@@ -570,7 +573,7 @@ public class MainActivity extends BaseActivity {
         public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
             String meetingName = mCreateRoom.getText().toString();
             if (meetingName.length() == 0 || meetingName == null) {
-                meetingName = "Untitled room";
+                return false;
             }
             mSign = getSign();
             if (mDebug)
@@ -797,7 +800,7 @@ public class MainActivity extends BaseActivity {
 
                 joinType = msg.getData().getString(JoinActType.JOIN_TYPE);
                 if (joinType == JoinActType.JOIN_ENTER_ACTIVITY) {
-                    statrMeetingActivity(mUrlMeetingName, meetinId,anyrtcId);
+                    statrMeetingActivity(mUrlMeetingName, meetinId, anyrtcId);
                 } else if (joinType == JoinActType.JOIN_LINK_JOIN_ACTIVITY) {
                     mNetWork.insertUserMeetingRoom(getSign(), meetinId, JoinActType.JOIN_INSERT_LINK_JOIN_ACTIVITY);
                 }
@@ -807,7 +810,7 @@ public class MainActivity extends BaseActivity {
 
                 joinType = msg.getData().getString(JoinActType.JOIN_TYPE);
                 if (joinType == JoinActType.JOIN_ENTER_ACTIVITY) {
-                    statrMeetingActivity(mUrlMeetingName, meetinId,anyrtcId);
+                    statrMeetingActivity(mUrlMeetingName, meetinId, anyrtcId);
                 } else if (joinType == JoinActType.JOIN_LINK_JOIN_ACTIVITY) {
 
                     Toast.makeText(mContext, R.string.str_meeting_privated, Toast.LENGTH_SHORT).show();
@@ -1003,7 +1006,7 @@ public class MainActivity extends BaseActivity {
                 if (mDebug)
                     Log.e(TAG, "MSG_NOTIFICATION_MEETING_CLOSE");
                 msg.what = ENTER_NEW_ROOM;
-                mUIHandler.sendMessageDelayed(msg,5000);
+                mUIHandler.sendMessageDelayed(msg, 6000);
                 break;
             case MSG_NOTIFICATION_MAIN:
                 if (mDebug)

@@ -1,22 +1,11 @@
 package org.dync.teameeting.http;
 
-import android.os.Bundle;
-import android.os.Message;
 import android.util.Log;
 
 import com.loopj.android.http.RequestParams;
 import com.orhanobut.logger.Logger;
 
 import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
 import org.dync.teameeting.TeamMeetingApp;
 import org.dync.teameeting.bean.MeetingList;
 import org.dync.teameeting.bean.MeetingListEntity;
@@ -25,18 +14,10 @@ import org.dync.teameeting.bean.MessageListEntity;
 import org.dync.teameeting.bean.SelfData;
 import org.dync.teameeting.structs.EventType;
 import org.dync.teameeting.structs.JoinActType;
-import org.dync.teameeting.utils.LocalUserInfo;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import de.greenrobot.event.EventBus;
 
@@ -63,9 +44,6 @@ public class NetWork {
         params.put("uregtype", uregtype);
         params.put("ulogindev", ulogindev);
         params.put("upushtoken", upushtoken);
-
-        final Bundle bundle = new Bundle();
-        final Message msg = new Message();
         HttpContent.post(url, params, new TmTextHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, int code, String message, String responseString, Header[] headers) {

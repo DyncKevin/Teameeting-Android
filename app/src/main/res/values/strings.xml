@@ -44,15 +44,15 @@
     <string name="str_join">"加入  :  "</string>
     <string name="str_user_name_null">用户名不能为空</string>
 
-  <!-- 进入会议界面  -->
-    
+    <!-- 进入会议界面  -->
+
     <string name="str_join_meeting">加入会议</string>
     <string name="str_edittext_meeting_id_hint">请输入12位会议 ID</string>
     <string name="str_meeting_id_error">会议 ID 格式错误</string>
     <string name="str_meeting_deleted">会议已经无效</string>
     <string name="str_meeting_privated">私密会议不能加入</string>
 
-   <!-- 时间 -->
+    <!-- 时间 -->
 
     <string name="chat_time_string_now">刚刚</string>
     <string name="chat_time_string_minutes_age">分钟以前</string>
@@ -90,6 +90,6 @@
     <string name="chat_output_name">我</string>
 
     <string name="notifi_str_new_message">有新消息 :</string>
-    <string name="notifi_str_enter_room">有人进入 :</string>
+    <string name="notifi_str_enter_room">进入"room name"房间正在等你哦~</string>
 
 </resources>

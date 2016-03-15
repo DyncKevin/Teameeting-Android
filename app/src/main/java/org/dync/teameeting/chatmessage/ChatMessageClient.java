@@ -106,16 +106,18 @@ public class ChatMessageClient implements JMClientHelper {
     }
 
     int i = 11111111;
+
     public void sendPushNotifiaction(ReqSndMsgEntity reqSndMsgEntity) {
 
         int tags = 0;
         String title;
         if (reqSndMsgEntity.getTags() == JMClientType.MCSENDTAGS_TALK) {
             tags = 1;
-            title = context.getString(R.string.notifi_str_new_message) + reqSndMsgEntity.getCont();
+            title = reqSndMsgEntity.getRname() + " - " + reqSndMsgEntity.getNname() + ":" + reqSndMsgEntity.getCont();
         } else if (reqSndMsgEntity.getTags() == JMClientType.MCSENDTAGS_ENTER) {
             tags = 2;
-            title = context.getString(R.string.notifi_str_enter_room) + reqSndMsgEntity.getRoom();
+            title = reqSndMsgEntity.getNname() + context.getString(R.string.notifi_str_enter_room);
+            title.replace("room name", reqSndMsgEntity.getRname());
         } else {
             return;
         }
