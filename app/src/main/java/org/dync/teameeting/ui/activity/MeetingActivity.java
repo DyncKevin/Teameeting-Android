@@ -205,7 +205,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
 
         mAnyrtcViews = new AnyRTCViews((RelativeLayout) findViewById(R.id.rl_videos), TeamMeetingApp.getTeamMeetingApp().getContext(), mCloseVoice, mCloseVideo);
         mAnyrtcViews.setVideoViewPeopleNumEvent(mVideoViewPeopleNumEvent);
-        mAnyM2Mutlier = new AnyrtcMeet(this, this);
+        mAnyM2Mutlier = new AnyrtcMeet(TeamMeetingApp.getMainActivity(), this);
 
 
         Intent intent = getIntent();
@@ -818,7 +818,11 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
                 mAnyM2Mutlier = null;
             }
         }
-        mAnyrtcViews=null;
+        if(mAnyrtcViews!=null){
+            mAnyrtcViews.destoryAnyRTCViews();
+            mAnyrtcViews = null;
+        }
+
         //TeamMeetingApp.getRefWatcher(TeamMeetingApp.getTeamMeetingApp().getContext()).watch(mAnyrtcViews);
         TeamMeetingApp.getRefWatcher(TeamMeetingApp.getTeamMeetingApp().getContext()).watch(mCloseVoice);
 

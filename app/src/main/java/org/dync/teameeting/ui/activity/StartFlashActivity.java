@@ -220,10 +220,10 @@ public class StartFlashActivity extends BaseActivity {
             Uri uri = intent.getData();
             if (uri != null) {
                 String content = uri.toString();
-                mUrlMeetingId = content.substring(13);
+                mUrlMeetingId = content.substring(content.length() - 12, content.length());
                 isNotifactionChack = false;
                 if (mDebug) {
-                    Log.e(TAG, "initData: " + uri.toString() + " content " + content);
+                    Log.e(TAG, "initData: " + uri.toString() + " content " + content + "--mUrlMeetingId" + mUrlMeetingId);
                 }
             }
         } else if (MyReceiver.ACTIVITY_ACTION_NOTIFACTION.equals(action)) {
