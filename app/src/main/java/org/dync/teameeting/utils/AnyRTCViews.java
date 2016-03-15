@@ -54,7 +54,7 @@ public class AnyRTCViews implements View.OnTouchListener, AnyRTCViewEvents {
         mVideoViewPeopleNumEvent = videoViewPeopleNumEvent;
     }
 
-    protected static class VideoView {
+    protected  class VideoView {
         public String strPeerId;
         public int index;
         public int x;
@@ -208,12 +208,36 @@ public class AnyRTCViews implements View.OnTouchListener, AnyRTCViewEvents {
     }
 
     public void destoryAnyRTCViews(){
-        if(mVideoViewPeopleNumEvent!=null){
-            mVideoViewPeopleNumEvent =null;
-        }
-        mVoiceClose = null ;
-        mVideoClose = null ;
-        //mVideoView = null;
+        Log.e(TAG, "destoryAnyRTCViews: " );
+
+          // VideoView remoteRender = mRemoteRenders.get(peerId);
+           Iterator<Map.Entry<String, VideoView>> iter = mRemoteRenders.entrySet().iterator();
+            while(iter.hasNext()){
+                Map.Entry<String,VideoView> entry = iter.next();
+                VideoView remoteRender = entry.getValue();
+
+                if(remoteRender.mView != null) {
+                    remoteRender.mView.release();
+                    remoteRender.mView = null;
+                    remoteRender.mRenderer = null;
+                }
+                mVideoView.removeView(remoteRender.mLayout);
+                mVideoView.removeView(remoteRender.mVideoImageView);
+                mVideoView.removeView(remoteRender.mVoiceImageView);
+
+
+                remoteRender.mVideoImageView = null;
+                remoteRender.mVoiceImageView = null;
+                remoteRender.mLayout = null;
+            }
+
+
+            if(mVideoViewPeopleNumEvent!=null){
+                mVideoViewPeopleNumEvent =null;
+            }
+            mVoiceClose = null ;
+            mVideoClose = null ;
+            //mVideoView = null;
     }
 
     public VideoTrack LocalVideoTrack() {
@@ -600,11 +624,16 @@ public class AnyRTCViews implements View.OnTouchListener, AnyRTCViewEvents {
             mVideoView.removeView(remoteRender.mVideoImageView);
             mVideoView.removeView(remoteRender.mVoiceImageView);
 
+
+            remoteRender.mVideoImageView = null;
+            remoteRender.mVoiceImageView = null;
+            remoteRender.mLayout = null;
+
             mRemoteRenders.remove(peerId);
             updateVideoView();
 
             mVideoViewPeopleNumEvent.OnPeopleNumChange(mRemoteRenders.size());
-
+            Log.e(TAG, "OnRtcRemoveRemoteRender: " );
 
         }
     }
@@ -637,13 +666,15 @@ public class AnyRTCViews implements View.OnTouchListener, AnyRTCViewEvents {
             mLocalRender.mView = null;
             mLocalRender.mRenderer = null;
 
-            mVideoView.removeView(mLocalRender.mLayout);
-            mVideoView.removeView(mLocalRender.mVideoImageView);
-            mVideoView.removeView(mLocalRender.mVoiceImageView);
-            mLocalRender.mVideoImageView = null ;
-            mLocalRender.mVideoImageView = null ;
-            mVideoView=null;
         }
+        mVideoView.removeView(mLocalRender.mLayout);
+        mVideoView.removeView(mLocalRender.mVideoImageView);
+        mVideoView.removeView(mLocalRender.mVoiceImageView);
+        mLocalRender.mVideoImageView = null;
+        mLocalRender.mVoiceImageView = null;
+        mLocalRender.mLayout = null;
+        mVideoView=null;
+        Log.e(TAG, "OnRtcRemoveLocalRender: ");
     }
 
     @Override
