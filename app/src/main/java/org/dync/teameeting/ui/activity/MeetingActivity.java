@@ -53,8 +53,6 @@ import org.dync.teameeting.widgets.PopupWindowCustom.OnPopupWindowClickListener;
 import org.dync.teameeting.widgets.ReFlashListView;
 import org.dync.teameeting.widgets.RoomControls;
 import org.dync.teameeting.widgets.VitualKey;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -167,9 +165,6 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
                         mDatas.add(0, chatMessage);
                     }
 
-                    //Collections.sort(mDatas);
-
-
                     mAdapter.notifyDataSetChanged();
                     if (mMessagePageNum == 1)
                         mChatView.setSelection(mDatas.size() - 1);
@@ -183,12 +178,11 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
 
     };
 
-    public static MeetingActivity instance = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        instance = this;
+
         initView();
         inintData();
 
@@ -209,7 +203,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         mIMM = (InputMethodManager) MeetingActivity.this.getSystemService(MainActivity.INPUT_METHOD_SERVICE);
 
 
-        mAnyrtcViews = new AnyRTCViews((RelativeLayout) findViewById(R.id.rl_videos),this,mCloseVoice,mCloseVideo);
+        mAnyrtcViews = new AnyRTCViews((RelativeLayout) findViewById(R.id.rl_videos), TeamMeetingApp.getTeamMeetingApp().getContext(), mCloseVoice, mCloseVideo);
         mAnyrtcViews.setVideoViewPeopleNumEvent(mVideoViewPeopleNumEvent);
         mAnyM2Mutlier = new AnyrtcMeet(this, this);
 
@@ -221,6 +215,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         mRoomName = getIntent().getStringExtra("meetingName");
         String anyrtcId = intent.getStringExtra("anyrtcId");
         mTvRoomName.setText(mRoomName);
+
         mAnyM2Mutlier.Join(anyrtcId);
         mAnyM2Mutlier.InitAnyRTCViewEvents(mAnyrtcViews);
 
@@ -349,21 +344,20 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         int showTime = 500;
         if (moveX > 0 && !mChatLayoutShow) {
             mChatLayoutShow = true;
-
+            mMessageShowFlag = false;
             Anims.animateRightMarginTo(mChatLayout, 0, mChatLayout.getWidth() - tvDuoyu.getWidth(), showTime, Anims.ACCELERATE);
             Anims.animateRightMarginTo(mControlLayout, 0, controllMove, showTime, Anims.ACCELERATE);
             Anims.animateRightMarginTo(mTvRemind, 0, controllMove, showTime, Anims.ACCELERATE);
             // Anims.animateRightMarginTo(mTvRoomName, 0, controllMove, showTime, Anims.ACCELERATE);
+            mTvMessageCount.setVisibility(View.INVISIBLE);
 
         } else if (moveX < 0 && mChatLayoutShow) {
             mChatLayoutShow = false;
-
+            mMessageShowFlag = true;
             Anims.animateRightMarginTo(mChatLayout, mChatLayout.getWidth() - tvDuoyu.getWidth(), 0, showTime, Anims.ACCELERATE);
             Anims.animateRightMarginTo(mControlLayout, controllMove, 0, showTime, Anims.ACCELERATE);
             Anims.animateRightMarginTo(mTvRemind, controllMove, 0, showTime, Anims.ACCELERATE);
-
             CRUDChat.deleteByMeetingId(MeetingActivity.this, mMeetingId);
-            mTvMessageCount.setVisibility(View.INVISIBLE);
 
         }
     }
@@ -421,7 +415,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
                     mControlLayout.setVisibility(View.VISIBLE);
                     //delete db  data
                     CRUDChat.deleteByMeetingId(MeetingActivity.this, mMeetingId);
-                    mTvMessageCount.setVisibility(View.GONE);
+                    mTvMessageCount.setVisibility(View.INVISIBLE);
                 } else {
                     msgSenderLeave();
                 }
@@ -527,7 +521,6 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
                     break;
 
                 case R.id.imgbtn_chat:
-                    stopShowMessage();
                     if (TeamMeetingApp.isPad) {
                         int value = mChatLayoutShow == true ? -100 : 100;
                         chatLayoutControl(value);
@@ -542,13 +535,9 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
                     sendMessageChat();
                     break;
                 case R.id.imgbtn_back:
-                    //startShowMessage();
                     mMessageShowFlag = true;
-
-                    //delete db  data
                     CRUDChat.deleteByMeetingId(MeetingActivity.this, mMeetingId);
-                    mTvMessageCount.setVisibility(View.GONE);
-
+                    mTvMessageCount.setVisibility(View.INVISIBLE);
                     mIMM.hideSoftInputFromWindow(mMsg.getWindowToken(), 0);
                     new Handler().postDelayed(new Runnable() {
                         @Override
@@ -557,7 +546,6 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
                         }
                     }, 400);
                     break;
-
             }
         }
 
@@ -628,7 +616,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
      */
     private void msgSenderLeave() {
         int code = mMsgSender.TMOptRoom(JMClientType.MCCMD_LEAVE, mMeetingId, mRoomName, "");
-        MeetingActivity.this.finish();
+        finish();
         if (code >= 0) {
             if (mDebug) {
                 Log.e(TAG, "TMLeaveRoom Successed");
@@ -720,18 +708,18 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
      */
     private void voiceSetting() {
 
-            if (mMeetingVoiceFlag) {
-                mVoiceButton.setImageResource(R.drawable.btn_voice_off);
-                mAnyrtcViews.updateLocalVoiceImage(false);
-                mAnyM2Mutlier.SetLocalAudioEnabled(false);
+        if (mMeetingVoiceFlag) {
+            mVoiceButton.setImageResource(R.drawable.btn_voice_off);
+            mAnyrtcViews.updateLocalVoiceImage(false);
+            mAnyM2Mutlier.SetLocalAudioEnabled(false);
 
-            } else {
-                mVoiceButton.setImageResource(R.drawable.btn_voice_on);
-                mAnyrtcViews.updateLocalVoiceImage(true);
-                mAnyM2Mutlier.SetLocalAudioEnabled(true);
+        } else {
+            mVoiceButton.setImageResource(R.drawable.btn_voice_on);
+            mAnyrtcViews.updateLocalVoiceImage(true);
+            mAnyM2Mutlier.SetLocalAudioEnabled(true);
 
-            }
-            mMeetingVoiceFlag = !mMeetingVoiceFlag;
+        }
+        mMeetingVoiceFlag = !mMeetingVoiceFlag;
 
     }
 
@@ -779,7 +767,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         if (mDebug) {
             Log.e(TAG, "leaveMessageDealWith: leaveMessageCount " + leaveMessageCount);
         }
-        if (mTvMessageCount.getVisibility() == View.GONE && !leaveMessageCount.equals("0")) {
+        if (mTvMessageCount.getVisibility() == View.INVISIBLE && !leaveMessageCount.equals("0")) {
             mTvMessageCount.setVisibility(View.VISIBLE);
         }
         mTvMessageCount.setText(leaveMessageCount);
@@ -792,17 +780,15 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
 
     @Override
     public void onPause() {
+        Log.e(TAG, "onPause: ");
         super.onPause();
         mAnyM2Mutlier.OnPause();
-/*        if (mVideoView.LocalVideoTrack() != null) {
-            mVideoView.LocalVideoTrack().setEnabled(false);
-        }
-        mAnyM2Mutlier.SetLocalVideoEnabled(false);*/
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        Log.e(TAG, "onResume: ");
         mAnyM2Mutlier.OnResume();
 /*        if (mVideoView.LocalVideoTrack() != null) {
             mVideoView.LocalVideoTrack().setEnabled(true);
@@ -812,6 +798,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
 
     @Override
     protected void onStop() {
+        Log.e(TAG, "onStop: ");
         super.onStop();
 
     }
@@ -832,6 +819,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         }
 
         super.onDestroy();
+        TeamMeetingApp.getRefWatcher(TeamMeetingApp.getTeamMeetingApp().getContext()).watch(this);
     }
 
     /**
@@ -855,11 +843,11 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         }
     };
 
-    private AnyRTCViews.VideoViewPeopleNumEvent mVideoViewPeopleNumEvent =new AnyRTCViews.VideoViewPeopleNumEvent() {
+    private AnyRTCViews.VideoViewPeopleNumEvent mVideoViewPeopleNumEvent = new AnyRTCViews.VideoViewPeopleNumEvent() {
         @Override
         public void OnPeopleNumChange(int peopleNum) {
-            if(mDebug){
-                Log.e(TAG, "OnPeopleNumChange: peopleNum "+peopleNum );
+            if (mDebug) {
+                Log.e(TAG, "OnPeopleNumChange: peopleNum " + peopleNum);
             }
             numberOfDisplay(peopleNum);
         }
@@ -880,8 +868,6 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
             }
         }, 1500);
     }
-
-
 
 
     @Override
@@ -906,9 +892,9 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
 
     @Override
     public void OnRtcLeaveMeet(int code) {
-        if(mDebug)
-            Log.e(TAG, "OnRtcLeaveMeet: "+code );
-        if(code ==0){
+        if (mDebug)
+            Log.e(TAG, "OnRtcLeaveMeet: " + code);
+        if (code == 0) {
 /*            mMessage.what = EventType.MSG_NOTIFICATION_MEETING_CLOSE.ordinal();
             EventBus.getDefault().post(mMessage);*/
         }
@@ -974,8 +960,6 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
     }
 
 
-
-
     private void mcsendtags_talk(String message, String name) {
         ChatMessage to = new ChatMessage(Type.INPUT, message, name, System.currentTimeMillis() + "");
         mDatas.add(to);
@@ -1011,6 +995,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
      * For EventBus callback.
      */
     private Message mMessage;
+
     public void onEventMainThread(Message msg) {
         switch (EventType.values()[msg.what]) {
             case MSG_MESSAGE_RECEIVE:

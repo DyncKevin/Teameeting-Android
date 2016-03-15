@@ -1006,7 +1006,7 @@ public class MainActivity extends BaseActivity {
                 if (mDebug)
                     Log.e(TAG, "MSG_NOTIFICATION_MEETING_CLOSE");
                 msg.what = ENTER_NEW_ROOM;
-                mUIHandler.sendMessageDelayed(msg, 5000);
+                mUIHandler.sendMessageDelayed(msg, 6000);
                 break;
             case MSG_NOTIFICATION_MAIN:
                 if (mDebug)

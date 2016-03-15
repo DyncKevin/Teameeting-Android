@@ -143,7 +143,7 @@ public class StartFlashActivity extends BaseActivity {
                     logs = "Failed with errorCode = " + code;
                     Log.e(JPUSH, logs);
             }
-           // showToast(logs, getApplicationContext());
+            // showToast(logs, getApplicationContext());
         }
     };
 
@@ -256,7 +256,7 @@ public class StartFlashActivity extends BaseActivity {
         }
 
         if (mMsgSender == null) {
-            mMsgSender = new TMMsgSender(this, TeamMeetingApp.getmChatMessageClient());
+            mMsgSender = new TMMsgSender(TeamMeetingApp.getTeamMeetingApp().getContext(), TeamMeetingApp.getmChatMessageClient());
         }
 
         TeamMeetingApp.getTeamMeetingApp().setmMsgSender(mMsgSender);

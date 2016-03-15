@@ -124,6 +124,10 @@ public class BaseActivity extends Activity implements IChatMessageInteface {
 
     }
 
+
+    /**
+     * network monitoring diloag
+     */
     void progressDiloag() {
         if (pDialog.isShowing()) {
             return;

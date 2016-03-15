@@ -1,6 +1,5 @@
 package org.dync.teameeting.utils;
 
-import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -38,7 +37,7 @@ public class AnyRTCViews implements View.OnTouchListener, AnyRTCViewEvents {
     private static int    mScreenHeight ;
     private static ImageView mVoiceClose;
     private static ImageView mVideoClose;
-    private static Activity mContent;
+    private static Context mContent;
     private HashMap<String,Boolean> mVoiceSetting =new HashMap<String, Boolean>();
     private HashMap<String,Boolean> mVideoSetting =new HashMap<String, Boolean>();
     private VideoViewPeopleNumEvent mVideoViewPeopleNumEvent;
@@ -54,8 +53,6 @@ public class AnyRTCViews implements View.OnTouchListener, AnyRTCViewEvents {
     public void setVideoViewPeopleNumEvent(VideoViewPeopleNumEvent videoViewPeopleNumEvent){
         mVideoViewPeopleNumEvent = videoViewPeopleNumEvent;
     }
-
-
 
     protected static class VideoView {
         public String strPeerId;
@@ -197,7 +194,7 @@ public class AnyRTCViews implements View.OnTouchListener, AnyRTCViewEvents {
     private VideoView mLocalRender;
     private HashMap<String, VideoView> mRemoteRenders;
 
-    public AnyRTCViews(RelativeLayout videoView, Activity content, ImageView closeVoice , ImageView closeVideo) {
+    public AnyRTCViews(RelativeLayout videoView, Context content, ImageView closeVoice , ImageView closeVideo) {
         AppRTCUtils.assertIsTrue(videoView != null);
         mVideoView = videoView;
         mContent = content ;
