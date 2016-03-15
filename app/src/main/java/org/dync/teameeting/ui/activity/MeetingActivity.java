@@ -53,10 +53,14 @@ import org.dync.teameeting.widgets.PopupWindowCustom.OnPopupWindowClickListener;
 import org.dync.teameeting.widgets.ReFlashListView;
 import org.dync.teameeting.widgets.RoomControls;
 import org.dync.teameeting.widgets.VitualKey;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import cn.pedant.SweetAlert.SweetAlertDialog;
 import de.greenrobot.event.EventBus;
@@ -206,11 +210,9 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
 
         mIMM = (InputMethodManager) MeetingActivity.this.getSystemService(MainActivity.INPUT_METHOD_SERVICE);
 
-
-        mAnyrtcViews = new AnyRTCViews((RelativeLayout) findViewById(R.id.rl_videos),this,mCloseVoice,mCloseVideo);
-        mAnyrtcViews.setVideoViewPeopleNumEvent(mVideoViewPeopleNumEvent);
+        // mAnyM2Mutlier = new AnyrtcM2Mutlier(this, this);
+        mAnyrtcViews = new AnyRTCViews((RelativeLayout) findViewById(R.id.rl_videos));
         mAnyM2Mutlier = new AnyrtcMeet(this, this);
-
 
         Intent intent = getIntent();
         mMeetingId = intent.getStringExtra("meetingId");
@@ -347,20 +349,21 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         int showTime = 500;
         if (moveX > 0 && !mChatLayoutShow) {
             mChatLayoutShow = true;
-            mMessageShowFlag = false;
+
             Anims.animateRightMarginTo(mChatLayout, 0, mChatLayout.getWidth() - tvDuoyu.getWidth(), showTime, Anims.ACCELERATE);
             Anims.animateRightMarginTo(mControlLayout, 0, controllMove, showTime, Anims.ACCELERATE);
             Anims.animateRightMarginTo(mTvRemind, 0, controllMove, showTime, Anims.ACCELERATE);
             // Anims.animateRightMarginTo(mTvRoomName, 0, controllMove, showTime, Anims.ACCELERATE);
-            mTvMessageCount.setVisibility(View.INVISIBLE);
 
         } else if (moveX < 0 && mChatLayoutShow) {
             mChatLayoutShow = false;
-            mMessageShowFlag = true;
+
             Anims.animateRightMarginTo(mChatLayout, mChatLayout.getWidth() - tvDuoyu.getWidth(), 0, showTime, Anims.ACCELERATE);
             Anims.animateRightMarginTo(mControlLayout, controllMove, 0, showTime, Anims.ACCELERATE);
             Anims.animateRightMarginTo(mTvRemind, controllMove, 0, showTime, Anims.ACCELERATE);
+
             CRUDChat.deleteByMeetingId(MeetingActivity.this, mMeetingId);
+            mTvMessageCount.setVisibility(View.INVISIBLE);
 
         }
     }
@@ -389,10 +392,10 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
             mPopupWindowCustom = null;
         }
 
-        if (mAnyrtcViews != null) {
+      /*  if (mVideoView != null) {
 
-            mAnyrtcViews.onScreenChanged();
-        }
+            mVideoView.onScreenChanged();
+        }*/
 
 
         super.onConfigurationChanged(newConfig);
@@ -418,7 +421,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
                     mControlLayout.setVisibility(View.VISIBLE);
                     //delete db  data
                     CRUDChat.deleteByMeetingId(MeetingActivity.this, mMeetingId);
-                    mTvMessageCount.setVisibility(View.INVISIBLE);
+                    mTvMessageCount.setVisibility(View.GONE);
                 } else {
                     msgSenderLeave();
                 }
@@ -544,7 +547,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
 
                     //delete db  data
                     CRUDChat.deleteByMeetingId(MeetingActivity.this, mMeetingId);
-                    mTvMessageCount.setVisibility(View.INVISIBLE);
+                    mTvMessageCount.setVisibility(View.GONE);
 
                     mIMM.hideSoftInputFromWindow(mMsg.getWindowToken(), 0);
                     new Handler().postDelayed(new Runnable() {
@@ -554,6 +557,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
                         }
                     }, 400);
                     break;
+
             }
         }
 
@@ -641,13 +645,32 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
     private void videoSetting() {
         if (!mMeetingCameraOffFlag) {
             mAnyM2Mutlier.SetLocalVideoEnabled(true);
+
             mCameraButton.setImageResource(R.drawable.btn_camera_on);
             mMeetingCameraOffFlag = true;
-            if (mAnyrtcViews.LocalVideoTrack() != null) {
-                mAnyrtcViews.LocalVideoTrack().setEnabled(true);
-                mAnyrtcViews.updateLocalVideoImage(true);
+          /* if (mVideoView.LocalVideoTrack() != null) {
+                mVideoView.LocalVideoTrack().setEnabled(true);
+                mVideoView.updateLocalVideoImage(true);
+
+                JSONObject json = new JSONObject();
+                int code = 0;
+                try {
+                    json.put("PublishId", mPublishId);
+                    json.put("Media", "Open");
+                    //code = mMsgSender.TMNotifyMsg(mMeetingId, mRname, JMClientType.MCSENDTAGS_VIDEOSET, json.toString());
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                if (mDebug) {
+                    if (code >= 0)
+                        Log.e(TAG, "videoCloseSetting: Successed ");
+                    else
+                        Log.e(TAG, "videoCloseSetting: failed ");
+                }
             }
-            return;
+            return;*/
         }
 
         if (mMeetingCameraFlag) {
@@ -689,13 +712,12 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
      * videoCloseSetting
      */
     private void videoCloseSetting() {
-
-        if (mAnyrtcViews.LocalVideoTrack() != null) {
-            mAnyrtcViews.LocalVideoTrack().setEnabled(false);
-            mAnyrtcViews.updateLocalVideoImage(false);
-            mAnyM2Mutlier.SetLocalVideoEnabled(false);
+        mAnyM2Mutlier.SetLocalVideoEnabled(false);
+     /*   if (mVideoView.LocalVideoTrack() != null) {
+            mVideoView.LocalVideoTrack().setEnabled(false);
+            mVideoView.updateLocalVideoImage(false);
         }
-
+*/
         mCameraButton.setImageResource(R.drawable.btn_camera_off_select);
         mMettingAnim.rotationOrApaha(mCameraButton, mMeetingCameraFlag);
         mMettingAnim.translationAlphaAnimator(mSwitchCameraButton, 0,
@@ -707,6 +729,23 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         mMeetingCameraOffFlag = false;
         mMeetingCameraFlag = true;
 
+        JSONObject json = new JSONObject();
+        int code = 0;
+        try {
+            json.put("PublishId", mPublishId);
+            json.put("Media", "Close");
+            //code = mMsgSender.TMNotifyMsg(mMeetingId, mRname, JMClientType.MCSENDTAGS_VIDEOSET, json.toString());
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        if (mDebug) {
+            if (code >= 0)
+                Log.e(TAG, "videoCloseSetting: Successed ");
+            else
+                Log.e(TAG, "videoCloseSetting: failed ");
+        }
 
     }
 
@@ -715,20 +754,37 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
      * voice Setting
      */
     private void voiceSetting() {
+        //JSONObject json = new JSONObject();
+        int code = 0;
+        // json.put("PublishId", mPublishId);
 
-            if (mMeetingVoiceFlag) {
-                mVoiceButton.setImageResource(R.drawable.btn_voice_off);
-                mAnyrtcViews.updateLocalVoiceImage(false);
-                mAnyM2Mutlier.SetLocalAudioEnabled(false);
+        if (mMeetingVoiceFlag) {
+            mVoiceButton.setImageResource(R.drawable.btn_voice_off);
+            mAnyM2Mutlier.SetLocalAudioEnabled(true);
+            Log.e(TAG, "voiceSetting: ");
+            //mCloseVoice.setVisibility(View.VISIBLE);
+            //mVideoView.updateLocalVoiceImage(false);
+            // json.put("Media", "Close");
+            //code = mMsgSender.TMNotifyMsg(mMeetingId, mRname, JMClientType.MCSENDTAGS_AUDIOSET, json.toString());
 
-            } else {
-                mVoiceButton.setImageResource(R.drawable.btn_voice_on);
-                mAnyrtcViews.updateLocalVoiceImage(true);
-                mAnyM2Mutlier.SetLocalAudioEnabled(true);
 
-            }
-            mMeetingVoiceFlag = !mMeetingVoiceFlag;
+        } else {
+            mVoiceButton.setImageResource(R.drawable.btn_voice_on);
+            mAnyM2Mutlier.SetLocalAudioEnabled(true);
+            //mCloseVoice.setVisibility(View.INVISIBLE);
+            //mVideoView.updateLocalVoiceImage(true);
+            //json.put("Media", "Open");
+            //code = mMsgSender.TMNotifyMsg(mMeetingId, mRname, JMClientType.MCSENDTAGS_AUDIOSET, json.toString());
+        }
+        mMeetingVoiceFlag = !mMeetingVoiceFlag;
 
+
+        if (mDebug) {
+            if (code >= 0)
+                Log.e(TAG, "voiceSetting: Successed ");
+            else
+                Log.e(TAG, "voiceSetting: failed ");
+        }
     }
 
 
@@ -775,7 +831,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         if (mDebug) {
             Log.e(TAG, "leaveMessageDealWith: leaveMessageCount " + leaveMessageCount);
         }
-        if (mTvMessageCount.getVisibility() == View.INVISIBLE && !leaveMessageCount.equals("0")) {
+        if (mTvMessageCount.getVisibility() == View.GONE && !leaveMessageCount.equals("0")) {
             mTvMessageCount.setVisibility(View.VISIBLE);
         }
         mTvMessageCount.setText(leaveMessageCount);
@@ -798,10 +854,6 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         super.onResume();
         Log.e(TAG, "onResume: ");
         mAnyM2Mutlier.OnResume();
-/*        if (mVideoView.LocalVideoTrack() != null) {
-            mVideoView.LocalVideoTrack().setEnabled(true);
-        }
-        mAnyM2Mutlier.SetLocalVideoEnabled(true);*/
     }
 
     @Override
@@ -818,13 +870,12 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
             Log.e(TAG, "onDestroy: ");
         List<String> activityList = TeamMeetingApp.getActivityList();
         activityList.clear();
-        //mVideoView.CloseLocalRender();
-        {// Close all
-            if (mAnyM2Mutlier != null) {
-                mAnyM2Mutlier.Leave();
-                mAnyM2Mutlier = null;
-            }
+
+        if (mAnyM2Mutlier != null) {
+            mAnyM2Mutlier.Leave();
+            mAnyM2Mutlier = null;
         }
+
 
         super.onDestroy();
     }
@@ -844,19 +895,9 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
             if (screenHeight - b > 300) {
                 mChatView.setSelection(mDatas.size() - 1);
             }// Vitual key
-            else if (mAnyrtcViews != null) {
-                mAnyrtcViews.onScreenChanged();
-            }
-        }
-    };
-
-    private AnyRTCViews.VideoViewPeopleNumEvent mVideoViewPeopleNumEvent =new AnyRTCViews.VideoViewPeopleNumEvent() {
-        @Override
-        public void OnPeopleNumChange(int peopleNum) {
-            if(mDebug){
-                Log.e(TAG, "OnPeopleNumChange: peopleNum "+peopleNum );
-            }
-            numberOfDisplay(peopleNum);
+           /* else if (mVideoView != null) {
+                mVideoView.onScreenChanged();
+            }*/
         }
     };
 
@@ -876,7 +917,30 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         }, 1500);
     }
 
+    /**
+     * updateImageFlag
+     */
+    private void updateImageFlag() {
+        Log.e(TAG, "updateImageFlag: ");
+        Iterator<Map.Entry<String, Boolean>> iterator = mVideoSetting.entrySet().iterator();
 
+        while (iterator.hasNext()) {
+            Map.Entry<String, Boolean> entry = iterator.next();
+            String publishId = entry.getKey();
+            Boolean videoFlag = entry.getValue();
+            //mVideoView.updateRemoteVideoImage(publishId, videoFlag);
+        }
+
+
+        iterator = mVoiceSetting.entrySet().iterator();
+
+        while (iterator.hasNext()) {
+            Map.Entry<String, Boolean> entry = iterator.next();
+            String publishId = entry.getKey();
+            Boolean voiceFlag = entry.getValue();
+            // mVideoView.updateRemoteVoiceImage(publishId, voiceFlag);
+        }
+    }
 
 
     @Override
@@ -890,24 +954,29 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
      */
 
     @Override
-    public void OnRtcJoinMeetOK(String strAnyrtcId) {
+    public void OnRtcJoinMeetOK(String s) {
+        Log.e(TAG, "OnRtcJoinMeetOK: " + s);
+    }
 
+
+    @Override
+    public void OnRtcJoinMeetFailed(String s, int i, String s1) {
+        Log.e(TAG, "OnRtcJoinMeetFailed: ");
     }
 
     @Override
-    public void OnRtcJoinMeetFailed(String strAnyrtcId, int code, String strReason) {
-
+    public void OnRtcLeaveMeet(int i) {
+        Log.e(TAG, "OnRtcLeaveMeet: " + i);
     }
 
-    @Override
-    public void OnRtcLeaveMeet(int code) {
-        if(mDebug)
-            Log.e(TAG, "OnRtcLeaveMeet: "+code );
-        if(code ==0){
-/*            mMessage.what = EventType.MSG_NOTIFICATION_MEETING_CLOSE.ordinal();
-            EventBus.getDefault().post(mMessage);*/
+/*    @Override
+    public void OnRtcOpenRemoteRender(String peerId, VideoTrack videoTrack) {
+        if (mDebug) {
+            Log.e(TAG, "onRtcOpenRemoteRender: " + peerId);
         }
-    }
+        mVideoView.OpenRemoteRender(peerId, videoTrack);
+        updateImageFlag();
+    }*/
 
 
 
@@ -938,12 +1007,12 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
             Log.e(TAG, "onRequesageMsg: " + "tags " + tags + " message " + message + " name " + name + " from " + from);
         }
         MessageTagsDistribute(tags, message, name);
-        //numberOfDisplay(requestMsg.getNmem());
+        numberOfDisplay(requestMsg.getNmem());
     }
 
 
     private void numberOfDisplay(int mennum) {
-        if (mennum > 0) {
+        if (mennum > 1) {
             MCSENDTAGS_SUBSCRIBE = true;
             mTvRemind.setVisibility(View.GONE);
         } else {
@@ -964,12 +1033,79 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
                 break;
             default:
                 break;
+            //case JMClientType.MCSENDTAGS_SUBSCRIBE://4
+            //    mcsendtags_subscribe(message);
+            //    break;
+            //case JMClientType.MCSENDTAGS_UNSUBSCRIBE://5
+            //    mcsendtags_unsubscribe(message);
+            //    break;
+            //case JMClientType.MCSENDTAGS_AUDIOSET://6
+            //    mcsendtags_audioset(message);
+            //    break;
+            //case JMClientType.MCSENDTAGS_VIDEOSET://7
+            //    mcsendtags_videoset(message);
+            //    break;
+        }
+    }
+
+    private void mcsendtags_subscribe(String message) {
+        MCSENDTAGS_SUBSCRIBE = true;
+        mTvRemind.setVisibility(View.GONE);
+/*        if (mAnyM2Mutlier != null)
+            mAnyM2Mutlier.Subscribe(message, true);
+        else if (mDebug)
+            Log.e(TAG, "onRequesageMsg: " + " mAnyM2Mutlier = = null ");*/
+    }
+
+    private void mcsendtags_unsubscribe(String message) {
+        if (mAnyM2Mutlier != null) {
+            // mVideoView.RemoveRemoteRender(message);
+            // mAnyM2Mutlier.UnSubscribe(message);
+        } else if (mDebug)
+            Log.e(TAG, "onRequesageMsg: " + " mAnyM2Mutlier = = null ");
+    }
+
+    private void mcsendtags_audioset(String message) {
+        if (message != null) {
+            try {
+                JSONObject json = new JSONObject(message);
+                String media = json.getString("Media");
+                String publishId = json.getString("PublishId");
+                Log.e(TAG, "onRequesageMsg: media " + media + " publishId " + publishId);
+
+                if (media.equals("Open")) {
+                    //mVideoView.updateRemoteVoiceImage(publishId, true);
+                    mVoiceSetting.put(publishId, true);
+                } else if (media.equals("Close")) {
+                    //  mVideoView.updateRemoteVoiceImage(publishId, true);
+                    mVoiceSetting.put(publishId, false);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
 
         }
     }
 
-
-
+    private void mcsendtags_videoset(String message) {
+        if (message != null) {
+            try {
+                JSONObject json = new JSONObject(message);
+                String media = json.getString("Media");
+                String publishId = json.getString("PublishId");
+                Log.e(TAG, "onRequesageMsg: media " + media + " publishId " + publishId);
+                if (media.equals("Open")) {
+                    //mVideoView.updateRemoteVoiceImage(publishId, true);
+                    mVideoSetting.put(publishId, true);
+                } else if (media.equals("Close")) {
+                    //mVideoView.updateRemoteVoiceImage(publishId, true);
+                    mVideoSetting.put(publishId, false);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
     private void mcsendtags_talk(String message, String name) {
         ChatMessage to = new ChatMessage(Type.INPUT, message, name, System.currentTimeMillis() + "");
@@ -1005,7 +1141,6 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
     /**
      * For EventBus callback.
      */
-    private Message mMessage;
     public void onEventMainThread(Message msg) {
         switch (EventType.values()[msg.what]) {
             case MSG_MESSAGE_RECEIVE:
