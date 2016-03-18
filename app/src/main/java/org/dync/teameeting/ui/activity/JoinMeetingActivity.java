@@ -13,6 +13,8 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.orhanobut.logger.Logger;
+
 import org.dync.teameeting.R;
 import org.dync.teameeting.TeamMeetingApp;
 import org.dync.teameeting.bean.MeetingListEntity;
@@ -52,7 +54,6 @@ public class JoinMeetingActivity extends BaseActivity implements View.OnClickLis
         mEtMeetingId.setOnEditorActionListener(mOnEditorActionListener);
     }
 
-
     private void inintdata() {
         mMsgSender = TeamMeetingApp.getmMsgSender();
 
@@ -63,8 +64,7 @@ public class JoinMeetingActivity extends BaseActivity implements View.OnClickLis
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
             public void run() {
-                InputMethodManager inputManager =
-                        (InputMethodManager) mEtMeetingId.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                InputMethodManager inputManager = (InputMethodManager) mEtMeetingId.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
                 inputManager.showSoftInput(mEtMeetingId, 0);
             }
 
@@ -97,7 +97,7 @@ public class JoinMeetingActivity extends BaseActivity implements View.OnClickLis
      */
     private void meetingDealWith() {
         mMeetingId = mEtMeetingId.getText().toString();
-        if (mMeetingId.length() == 12) {
+        if (mMeetingId.length() == 10) {
             if (mDebug)
                 Log.e(TAG, "meetingDealWith: " + getSign() + " mMeetingId " + mMeetingId);
             int position = TeamMeetingApp.getmSelfData().getMeetingIdPosition(mMeetingId);
@@ -122,10 +122,13 @@ public class JoinMeetingActivity extends BaseActivity implements View.OnClickLis
     private void joinMeeting() {
         String userId = TeamMeetingApp.getTeamMeetingApp().getDevId();
         Intent intent = new Intent(JoinMeetingActivity.this, MeetingActivity.class);
+
         intent.putExtra("meetingId", mMeetingId);
         intent.putExtra("userId", userId);
         intent.putExtra("meetingName", mMeetingName);
         intent.putExtra("anyrtcid", mAnyrtcid);
+
+        Log.e(TAG, "joinMeeting: " + mAnyrtcid + "meetingName" + mMeetingName + "meetingId" + mMeetingId);
         startActivity(intent);
         finish();
     }
@@ -137,6 +140,7 @@ public class JoinMeetingActivity extends BaseActivity implements View.OnClickLis
      */
     private void getMeetingInfoSuccess(Message msg) {
         MeetingListEntity meetingListEntity = TeamMeetingApp.getmSelfData().getMeetingListEntity();
+        Logger.e(meetingListEntity.toString());
         int usable = meetingListEntity.getMeetenable();
         mAnyrtcid = meetingListEntity.getAnyrtcid();
         mMeetingName = meetingListEntity.getMeetname();
@@ -171,7 +175,7 @@ public class JoinMeetingActivity extends BaseActivity implements View.OnClickLis
                         Log.e(TAG, "MSG_GET_MEETING_INFO_FAILED");
                     join_insert_type = msg.getData().getString(JoinActType.JOIN_TYPE);
                     if (join_insert_type == JoinActType.JOIN_START_ACTIVITY) {
-                        Toast.makeText(JoinMeetingActivity.this, msg.getData().getString("message"), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(JoinMeetingActivity.this, R.string.meeting_delete_create, Toast.LENGTH_SHORT).show();
                     }
 
                     break;

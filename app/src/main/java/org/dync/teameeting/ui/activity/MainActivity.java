@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -29,6 +30,9 @@ import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
 
 import com.orhanobut.logger.Logger;
+import com.pgyersdk.javabean.AppBean;
+import com.pgyersdk.update.PgyUpdateManager;
+import com.pgyersdk.update.UpdateManagerListener;
 
 import org.dync.teameeting.R;
 import org.dync.teameeting.TeamMeetingApp;
@@ -154,6 +158,38 @@ public class MainActivity extends BaseActivity {
         if (mDebug) {
             Log.e(TAG, "onCreate: " + TeamMeetingApp.getmSelfData().getMeetingLists().toString());
         }
+        updataApp();
+    }
+
+    private void updataApp() {
+        PgyUpdateManager.register(MainActivity.this, new UpdateManagerListener() {
+            @Override
+            public void onUpdateAvailable(final String result) {
+                final AppBean appBean = getAppBeanFromString(result);
+                new SweetAlertDialog(mContext,
+                        SweetAlertDialog.WARNING_TYPE).setTitleText("版本更新")
+                        .setConfirmText("取消")
+                        .setContentText(appBean.getReleaseNote())
+                        .setConfirmClickListener(new OnSweetClickListener() {
+                            @Override
+                            public void onClick(SweetAlertDialog sweetAlertDialog) {
+                                sweetAlertDialog.dismiss();
+                            }
+                        })
+                        .setCancelText("升级")
+                        .setCancelClickListener(new OnSweetClickListener() {
+                            @Override
+                            public void onClick(SweetAlertDialog sweetAlertDialog) {
+                                sweetAlertDialog.dismiss();
+                                startDownloadTask(MainActivity.this, appBean.getDownloadURL());
+                            }
+                        }).show();
+            }
+
+            @Override
+            public void onNoUpdateAvailable() {
+            }
+        });
 
     }
 
@@ -320,8 +356,7 @@ public class MainActivity extends BaseActivity {
         if (mDebug)
             Log.e(TAG, "onDestroy=--- !+pushStopped" + pushStopped);
         LocalUserInfo.getInstance(this).setUserInfoBoolean(LocalUserInfo.MAIN_ACTIVE, false);
-        TeamMeetingApp.getmMsgSender().TMUnin();
-        System.exit(0);
+
     }
 
 
@@ -471,6 +506,17 @@ public class MainActivity extends BaseActivity {
 
                     break;
                 case R.id.ibtn_join_meeting:
+                    /**
+                     * joinMeeting
+                     */
+
+                    /*String userId = TeamMeetingApp.getTeamMeetingApp().getDevId();
+                    Intent intent = new Intent(MainActivity.this, MeetingActivity.class);
+                    intent.putExtra("meetingId", "4011926224");
+                    intent.putExtra("userId", userId);
+                    intent.putExtra("meetingName", "1458179104626");
+                    intent.putExtra("anyrtcid", "800002606345");
+                    startActivity(intent);*/
                     Intent intent = new Intent(mContext, JoinMeetingActivity.class);
                     startActivity(intent);
                     break;
@@ -564,15 +610,21 @@ public class MainActivity extends BaseActivity {
         mContext.startActivity(intent);
     }
 
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        Log.e(TAG, "onConfigurationChanged: " + newConfig);
+        super.onConfigurationChanged(newConfig);
+    }
 
     /**
-     * soft keyboard Listener
+     * soft keyboard Listenerge
      */
     OnEditorActionListener editorActionListener = new OnEditorActionListener() {
         @Override
         public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
             String meetingName = mCreateRoom.getText().toString();
             if (meetingName.length() == 0 || meetingName == null) {
+                Toast.makeText(mContext, R.string.toast_plase_roon_name, Toast.LENGTH_SHORT).show();
                 return false;
             }
             mSign = getSign();
@@ -640,6 +692,8 @@ public class MainActivity extends BaseActivity {
                 mSign = getSign();
                 mNetWork.signOut(mSign);
                 this.finish();
+                TeamMeetingApp.getmMsgSender().TMUnin();
+                System.exit(0);
             }
             return true;
         }
@@ -1006,7 +1060,7 @@ public class MainActivity extends BaseActivity {
                 if (mDebug)
                     Log.e(TAG, "MSG_NOTIFICATION_MEETING_CLOSE");
                 msg.what = ENTER_NEW_ROOM;
-                mUIHandler.sendMessageDelayed(msg, 6000);
+                mUIHandler.sendMessageDelayed(msg, 1000);
                 break;
             case MSG_NOTIFICATION_MAIN:
                 if (mDebug)

@@ -16,7 +16,6 @@ import android.widget.RelativeLayout;
 public class Anims
 {
     public static final Interpolator ACCELERATE = new AccelerateInterpolator();
-    ;
     public static final Interpolator LINEA = new LinearInterpolator();
     public static final Interpolator EASE_IN_EASE_OUT = new AccelerateDecelerateInterpolator();
     public static final Interpolator EASE_OUT = new DecelerateInterpolator();

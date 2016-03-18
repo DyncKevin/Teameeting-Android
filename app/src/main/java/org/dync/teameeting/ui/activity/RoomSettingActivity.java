@@ -2,21 +2,21 @@ package org.dync.teameeting.ui.activity;
 
 import android.content.Context;
 import android.content.Intent;
-
 import android.os.Bundle;
 import android.os.Message;
-
 import android.util.Log;
-
 import android.view.View;
-
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.tencent.mm.sdk.openapi.IWXAPI;
+import com.tencent.mm.sdk.openapi.WXAPIFactory;
+
 import org.dync.teameeting.R;
 import org.dync.teameeting.TeamMeetingApp;
 import org.dync.teameeting.bean.MeetingListEntity;
+import org.dync.teameeting.structs.Constants;
 import org.dync.teameeting.structs.EventType;
 import org.dync.teameeting.structs.ExtraType;
 import org.dync.teameeting.structs.HttpApiTpye;
@@ -103,22 +103,23 @@ public class RoomSettingActivity extends BaseActivity implements View.OnClickLis
     SlideListener slideNotificationListener = new SlideListener() {
         @Override
         public void open() {
-
             mNetWork.updateRoomPushable(mSign, mMeetingId,
                     HttpApiTpye.pushableYes, mPosition);
+
             Anims.ScaleAnim(ivNotifation, 1, 0, 500);
-            mNotificationsStates = true ;
+            mNotificationsStates = true;
         }
 
         @Override
         public void close() {
             mNetWork.updateRoomPushable(mSign, mMeetingId,
                     HttpApiTpye.pushableNO, mPosition);
-            if(mNotificationsStates)
+            if (mNotificationsStates)
                 Anims.ScaleAnim(ivNotifation, 0, 1, 500);
-            mNotificationsStates = false ;
+            mNotificationsStates = false;
         }
     };
+    IWXAPI api;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -126,6 +127,8 @@ public class RoomSettingActivity extends BaseActivity implements View.OnClickLis
         setContentView(R.layout.activity_room_setting);
         mShareHelper = new ShareHelper(RoomSettingActivity.this);
         context = this;
+        api = WXAPIFactory.createWXAPI(this, Constants.APP_ID, true);
+        api.registerApp(Constants.APP_ID);
         initData();
         initLayout();
 
@@ -149,8 +152,7 @@ public class RoomSettingActivity extends BaseActivity implements View.OnClickLis
         }
 
         mSign = getSign();
-        mShareUrl = "Let us see in a meeting!:" +
-                "http://115.28.70.232/share_meetingRoom/#" + mMeetingId;
+        mShareUrl = "http://www.teameeting.cn/share_meetingRoom/#" + mMeetingId + "Meeting";
     }
 
     void initLayout() {
@@ -206,7 +208,9 @@ public class RoomSettingActivity extends BaseActivity implements View.OnClickLis
     }
 
     private void inintSwitchState() {
+
         mNotificationsStates = (mMeetingEntity.getPushable() == 1) ? true : false;
+
         mSlideSwitch.setState(mNotificationsStates);
         mMeetingPrivateFlag = (mMeetingEntity.getMeetenable() == 2) ? true : false;
         mSlideSwitchPrivate.setState(mMeetingPrivateFlag);
@@ -214,6 +218,7 @@ public class RoomSettingActivity extends BaseActivity implements View.OnClickLis
 
     private void initwidgetState() {
         int visible;
+
 
         if (mOwner == 1) {
             visible = View.VISIBLE;
@@ -242,10 +247,8 @@ public class RoomSettingActivity extends BaseActivity implements View.OnClickLis
 
     private void meetingPrivateUIUpdate() {
         if (mMeetingPrivateFlag) {
-            mTvIniviteMessage.setTextColor(getResources()
-                    .getColor(R.color.darkGray));
-            mTvInviteWeixin.setTextColor(getResources()
-                    .getColor(R.color.darkGray));
+            mTvIniviteMessage.setTextColor(getResources().getColor(R.color.darkGray));
+            mTvInviteWeixin.setTextColor(getResources().getColor(R.color.darkGray));
             mTvCopyLink.setTextColor(getResources().getColor(R.color.darkGray));
             mTvIniviteMessage.setClickable(false);
             mTvInviteWeixin.setClickable(false);
@@ -285,7 +288,6 @@ public class RoomSettingActivity extends BaseActivity implements View.OnClickLis
             case R.id.tv_invite_message:
                 // SMS
                 mShareHelper.shareSMS(this, "", mShareUrl);
-
                 break;
 
             case R.id.tv_invite_weixin:
@@ -381,5 +383,9 @@ public class RoomSettingActivity extends BaseActivity implements View.OnClickLis
 
                 break;
         }
+    }
+
+    private String buildTransaction(final String type) {
+        return (type == null) ? String.valueOf(System.currentTimeMillis()) : type + System.currentTimeMillis();
     }
 }

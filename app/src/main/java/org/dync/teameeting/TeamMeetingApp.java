@@ -14,8 +14,10 @@ import android.os.Environment;
 import android.provider.Settings.Secure;
 import android.widget.Toast;
 
+import com.pgyersdk.crash.PgyCrashManager;
 import com.squareup.leakcanary.LeakCanary;
 import com.squareup.leakcanary.RefWatcher;
+import com.tencent.mm.sdk.openapi.IWXAPI;
 
 import org.anyrtc.Anyrtc;
 import org.dync.teameeting.bean.SelfData;
@@ -83,6 +85,8 @@ public class TeamMeetingApp extends Application {
         return mChatMessageClient;
     }
 
+    private IWXAPI api;
+
     @Override
     public void onCreate() {
         // TODO Auto-generated method stub
@@ -96,6 +100,9 @@ public class TeamMeetingApp extends Application {
         JPushInterface.setDebugMode(true);
         JPushInterface.init(this);
         refWatcher = LeakCanary.install(this);
+
+        PgyCrashManager.register(this);
+
         Anyrtc.InitAnyrtc("mzw0001", "defq34hj92mxxjhaxxgjfdqi1s332dd", "d74TcmQDMB5nWx9zfJ5al7JdEg3XwySwCkhdB9lvnd1", "org.dync.app");
     }
 

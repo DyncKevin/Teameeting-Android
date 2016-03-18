@@ -207,15 +207,14 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         mAnyrtcViews.setVideoViewPeopleNumEvent(mVideoViewPeopleNumEvent);
         mAnyM2Mutlier = new AnyrtcMeet(TeamMeetingApp.getMainActivity(), this);
 
-
         Intent intent = getIntent();
         mMeetingId = intent.getStringExtra("meetingId");
         mUserId = intent.getStringExtra("userId");
         mNotifTags = intent.getIntExtra("tags", 0);
         mRoomName = getIntent().getStringExtra("meetingName");
         String anyrtcId = intent.getStringExtra("anyrtcId");
-        mTvRoomName.setText(mRoomName);
 
+        mTvRoomName.setText(mRoomName);
         mAnyM2Mutlier.Join(anyrtcId);
         mAnyM2Mutlier.InitAnyRTCViewEvents(mAnyrtcViews);
 
@@ -226,7 +225,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         mMettingAnim = new MeetingAnim();
         mMettingAnim.setAnimEndListener(mAnimationEndListener);
 
-        mShareUrl = "Let us see in a meeting!:" + "http://115.28.70.232/share_meetingRoom/#" + mMeetingId;
+        mShareUrl = "http://www.teameeting.cn/share_meetingRoom/#" + mMeetingId + "Meeting";
 
         mChatView.setInterface(this);
 
@@ -388,7 +387,6 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         }
 
         if (mAnyrtcViews != null) {
-
             mAnyrtcViews.onScreenChanged();
         }
 
@@ -818,13 +816,11 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
                 mAnyM2Mutlier = null;
             }
         }
-        if(mAnyrtcViews!=null){
+        if (mAnyrtcViews != null) {
             mAnyrtcViews.destoryAnyRTCViews();
             mAnyrtcViews = null;
         }
 
-        //TeamMeetingApp.getRefWatcher(TeamMeetingApp.getTeamMeetingApp().getContext()).watch(mAnyrtcViews);
-        TeamMeetingApp.getRefWatcher(TeamMeetingApp.getTeamMeetingApp().getContext()).watch(mCloseVoice);
 
         super.onDestroy();
 
@@ -838,10 +834,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         public void onLayoutKeyChange(int b) {
 
             int screenHeight = ScreenUtils.getScreenHeight(MeetingActivity.this);
-/*            if(mDebug)
-            Log.e(TAG, "onLayoutKeyChange: "+" onLayoutKeyChange "+screenHeight);*/
 
-            // Vitual keymap
             if (screenHeight - b > 300) {
                 mChatView.setSelection(mDatas.size() - 1);
             }// Vitual key
