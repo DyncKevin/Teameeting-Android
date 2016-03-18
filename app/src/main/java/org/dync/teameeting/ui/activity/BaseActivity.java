@@ -114,16 +114,13 @@ public class BaseActivity extends Activity implements IChatMessageInteface {
         EventBus.getDefault().unregister(this);
     }
 
+    @Override
+    public void onRequesageMsg(ReqSndMsgEntity requestMsg) {
+    }
 
     public void onEventMainThread(Message msg) {
 
     }
-
-    @Override
-    public void onRequesageMsg(ReqSndMsgEntity requestMsg) {
-
-    }
-
 
     /**
      * network monitoring diloag
@@ -213,6 +210,4 @@ public class BaseActivity extends Activity implements IChatMessageInteface {
             }
         }.start();
     }
-
-
 }

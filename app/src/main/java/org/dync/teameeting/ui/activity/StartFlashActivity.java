@@ -185,9 +185,8 @@ public class StartFlashActivity extends BaseActivity {
         inintView();
         initData();
         setTag();
-
-        //setPushNotificationBuilderIcon();
     }
+
 
     private void setTag() {
         mHandler.sendEmptyMessage(MSG_SET_TAGS);
@@ -220,7 +219,7 @@ public class StartFlashActivity extends BaseActivity {
             Uri uri = intent.getData();
             if (uri != null) {
                 String content = uri.toString();
-                mUrlMeetingId = content.substring(content.length() - 12, content.length());
+                mUrlMeetingId = content.substring(content.length() - 17, content.length()-7);
                 isNotifactionChack = false;
                 if (mDebug) {
                     Log.e(TAG, "initData: " + uri.toString() + " content " + content + "--mUrlMeetingId" + mUrlMeetingId);
@@ -291,16 +290,14 @@ public class StartFlashActivity extends BaseActivity {
         Intent intent;
 
         if (firstLogin) {
+            LocalUserInfo.getInstance(context).setUserInfoInt(LocalUserInfo.NOTIFIACTION_TAGS, mTags);
             intent = new Intent(StartFlashActivity.this, GuideActivity.class);
-            LocalUserInfo.getInstance(StartFlashActivity.this)
-                    .setUserInfoBoolean(LocalUserInfo.FIRST_LOGIN, false);
+            LocalUserInfo.getInstance(StartFlashActivity.this).setUserInfoBoolean(LocalUserInfo.FIRST_LOGIN, false);
         } else {
             intent = new Intent(StartFlashActivity.this, MainActivity.class);
             intent.putExtra("isNotifactionChack", isNotifactionChack);
             intent.putExtra("urlMeetingId", mUrlMeetingId);
             intent.putExtra("tags", mTags);
-            //Storage notification flag
-            LocalUserInfo.getInstance(context).setUserInfoInt(LocalUserInfo.NOTIFIACTION_TAGS, mTags);
         }
 
         startActivity(intent);

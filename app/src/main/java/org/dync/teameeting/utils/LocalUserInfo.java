@@ -60,6 +60,6 @@ public class LocalUserInfo {
 
 
     public Boolean getUserInfoBoolean(String str_name) {
-        return mSharedPreferences.getBoolean(str_name, false);
+        return mSharedPreferences.getBoolean(str_name, true);
     }
 }

@@ -2,8 +2,6 @@ package org.dync.teameeting.utils;
 
 import android.content.res.Resources;
 
-import com.orhanobut.logger.Logger;
-
 import org.dync.teameeting.R;
 
 import java.text.SimpleDateFormat;
@@ -80,7 +78,7 @@ public class StringHelper {
     }
 
     public static String unReadMessageStr(long noReadMessageSize, long timeStr, Resources resources) {
-        return "<" + noReadMessageSize + "> " + "New message " + formatDuration(timeStr, resources);
+        return "<" + noReadMessageSize + "> " + resources.getString(R.string.chat_str_new_message) + format(timeStr, resources);
     }
 
 
