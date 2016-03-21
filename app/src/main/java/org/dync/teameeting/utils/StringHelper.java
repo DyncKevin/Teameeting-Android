@@ -81,5 +81,10 @@ public class StringHelper {
         return "<" + noReadMessageSize + "> " + resources.getString(R.string.chat_str_new_message) + format(timeStr, resources);
     }
 
+    public static String uriToMeetingId(String uri) {
+        int index = uri.lastIndexOf("//");
+        return uri.substring(index + 2, index + 12);
+    }
+
 
 }

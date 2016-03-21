@@ -126,7 +126,7 @@ public class JoinMeetingActivity extends BaseActivity implements View.OnClickLis
         intent.putExtra("meetingId", mMeetingId);
         intent.putExtra("userId", userId);
         intent.putExtra("meetingName", mMeetingName);
-        intent.putExtra("anyrtcid", mAnyrtcid);
+        intent.putExtra("anyrtcId", mAnyrtcid);
 
         Log.e(TAG, "joinMeeting: " + mAnyrtcid + "meetingName" + mMeetingName + "meetingId" + mMeetingId);
         startActivity(intent);

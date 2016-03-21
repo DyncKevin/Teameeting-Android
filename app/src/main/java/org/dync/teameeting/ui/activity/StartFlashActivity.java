@@ -26,6 +26,7 @@ import org.dync.teameeting.structs.EventType;
 import org.dync.teameeting.structs.NetType;
 import org.dync.teameeting.ui.helper.DialogHelper;
 import org.dync.teameeting.utils.LocalUserInfo;
+import org.dync.teameeting.utils.StringHelper;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -53,7 +54,7 @@ public class StartFlashActivity extends BaseActivity {
     private boolean isNotifactionChack = false;
 
     private final String mServer = "message.anyrtc.io";
-    //private final String mServer = "192.168.7.61";
+    //private final String mServer = "192.168.7.43";
     private final int mPort = 6630;
     private String mUserid;
     private String mSign;
@@ -219,7 +220,7 @@ public class StartFlashActivity extends BaseActivity {
             Uri uri = intent.getData();
             if (uri != null) {
                 String content = uri.toString();
-                mUrlMeetingId = content.substring(content.length() - 17, content.length()-7);
+                mUrlMeetingId = StringHelper.uriToMeetingId(content);
                 isNotifactionChack = false;
                 if (mDebug) {
                     Log.e(TAG, "initData: " + uri.toString() + " content " + content + "--mUrlMeetingId" + mUrlMeetingId);
