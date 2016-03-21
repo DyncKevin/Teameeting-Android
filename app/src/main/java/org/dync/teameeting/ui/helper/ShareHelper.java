@@ -67,8 +67,8 @@ public class ShareHelper {
      * @param msgText
      * @param webUrl
      */
-    public void shareWeiXin( String webUr,String msgTitle, String msgText) {
-        shareToWeiXin(webUr, msgTitle, msgText);
+    public void shareWeiXin( String webUrl,String msgTitle, String msgText) {
+        shareToWeiXin(webUrl, msgTitle, msgText);
     }
 
 
