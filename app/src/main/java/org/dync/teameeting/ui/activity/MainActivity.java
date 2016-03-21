@@ -598,31 +598,16 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-/*    private void statrMeetingActivity(String meetingName, String meetingId, String anyrtcId) {
-        Intent intent = new Intent(mContext, MeetingActivity.class);
-        intent.putExtra("meetingName", meetingName);
-        intent.putExtra("meetingId", meetingId);
-        intent.putExtra("userId", mUserId);
-        intent.putExtra("anyrtcId", anyrtcId);
-        if (isNotifactionChack) {
-            intent.putExtra("tags", mNotifTags);
-            isNotifactionChack = false;
-        }
 
-        mContext.startActivity(intent);
-    }*/
-        private void statrMeetingActivity(MeetingListEntity meetingListEntity) {
+    private void statrMeetingActivity(MeetingListEntity meetingListEntity) {
         Intent intent = new Intent(mContext, MeetingActivity.class);
- /*       intent.putExtra("meetingName", meetingName);
-        intent.putExtra("meetingId", meetingId);
-        intent.putExtra("userId", mUserId);
-        intent.putExtra("anyrtcId", anyrtcId);*/
+
         if (isNotifactionChack) {
             intent.putExtra("tags", mNotifTags);
             isNotifactionChack = false;
         }
-        Bundle bundle =new Bundle();
-        bundle.putSerializable("meetingListEntity",meetingListEntity);
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("meetingListEntity", meetingListEntity);
 
         intent.putExtras(bundle);
         mContext.startActivity(intent);
@@ -881,7 +866,7 @@ public class MainActivity extends BaseActivity {
 
                 joinType = msg.getData().getString(JoinActType.JOIN_TYPE);
                 if (joinType == JoinActType.JOIN_ENTER_ACTIVITY) {
-                   // statrMeetingActivity(mUrlMeetingName, meetinId, anyrtcId);
+                    // statrMeetingActivity(mUrlMeetingName, meetinId, anyrtcId);
                     statrMeetingActivity(meetingListEntity);
                 } else if (joinType == JoinActType.JOIN_LINK_JOIN_ACTIVITY) {
 

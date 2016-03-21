@@ -10,13 +10,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.tencent.mm.sdk.openapi.IWXAPI;
-import com.tencent.mm.sdk.openapi.WXAPIFactory;
-
 import org.dync.teameeting.R;
 import org.dync.teameeting.TeamMeetingApp;
 import org.dync.teameeting.bean.MeetingListEntity;
-import org.dync.teameeting.structs.Constants;
 import org.dync.teameeting.structs.EventType;
 import org.dync.teameeting.structs.ExtraType;
 import org.dync.teameeting.structs.HttpApiTpye;
@@ -57,7 +53,6 @@ public class RoomSettingActivity extends BaseActivity implements View.OnClickLis
     private View mvRoomName;
     private View vJoninRoom;
     private View mvIniviteMessage;
-    private View vInviteWeixin;
     private View mvInviteWeiXin;
     private View mvCopyLink;
     private View mvNotifications;
@@ -103,23 +98,20 @@ public class RoomSettingActivity extends BaseActivity implements View.OnClickLis
     SlideListener slideNotificationListener = new SlideListener() {
         @Override
         public void open() {
-            mNetWork.updateRoomPushable(mSign, mMeetingId,
-                    HttpApiTpye.pushableYes, mPosition);
-
+            mNetWork.updateRoomPushable(mSign, mMeetingId, HttpApiTpye.pushableYes, mPosition);
             Anims.ScaleAnim(ivNotifation, 1, 0, 500);
+            // ivNotifation.setVisibility();
             mNotificationsStates = true;
         }
 
         @Override
         public void close() {
-            mNetWork.updateRoomPushable(mSign, mMeetingId,
-                    HttpApiTpye.pushableNO, mPosition);
+            mNetWork.updateRoomPushable(mSign, mMeetingId, HttpApiTpye.pushableNO, mPosition);
             if (mNotificationsStates)
                 Anims.ScaleAnim(ivNotifation, 0, 1, 500);
             mNotificationsStates = false;
         }
     };
-    IWXAPI api;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -127,8 +119,6 @@ public class RoomSettingActivity extends BaseActivity implements View.OnClickLis
         setContentView(R.layout.activity_room_setting);
         mShareHelper = new ShareHelper(RoomSettingActivity.this);
         context = this;
-        api = WXAPIFactory.createWXAPI(this, Constants.APP_ID, true);
-        api.registerApp(Constants.APP_ID);
         initData();
         initLayout();
 
@@ -212,14 +202,13 @@ public class RoomSettingActivity extends BaseActivity implements View.OnClickLis
         mNotificationsStates = (mMeetingEntity.getPushable() == 1) ? true : false;
 
         mSlideSwitch.setState(mNotificationsStates);
+
         mMeetingPrivateFlag = (mMeetingEntity.getMeetenable() == 2) ? true : false;
         mSlideSwitchPrivate.setState(mMeetingPrivateFlag);
     }
 
     private void initwidgetState() {
         int visible;
-
-
         if (mOwner == 1) {
             visible = View.VISIBLE;
         } else {
@@ -280,7 +269,7 @@ public class RoomSettingActivity extends BaseActivity implements View.OnClickLis
                 return;
 
             case R.id.tv_join_room:
-                statrMeetingActivity(mMeetingName, mMeetingId);
+                statrMeetingActivity();
                 finishActivity();
 
                 break;
@@ -348,14 +337,16 @@ public class RoomSettingActivity extends BaseActivity implements View.OnClickLis
 
             default:
                 break;
+
         }
     }
 
-    private void statrMeetingActivity(String meetingName, String meetingId) {
+    private void statrMeetingActivity() {
         Intent intent = new Intent(context, MeetingActivity.class);
-        intent.putExtra("meetingName", meetingName);
-        intent.putExtra("meetingId", meetingId);
-        intent.putExtra("userId", TeamMeetingApp.getTeamMeetingApp().getDevId());
+
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("meetingListEntity", mMeetingEntity);
+        intent.putExtras(bundle);
         startActivity(intent);
     }
 
