@@ -95,5 +95,7 @@
     <string name="toast_plase_roon_name">请输入会议名称</string>
     <string name="chat_str_new_message">新消息:</string>
     <string name="str_share">http://www.teameeting.cn/share_meetingRoom/#MeetingIdMeeting</string>
+    <string name="share_str_nomsg">请安装短信应用</string>
+    <string name="share_str_weixing_title">视屏邀请</string>
 
 </resources>

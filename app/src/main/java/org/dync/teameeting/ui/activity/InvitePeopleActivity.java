@@ -13,7 +13,6 @@ import org.dync.teameeting.R;
 import org.dync.teameeting.TeamMeetingApp;
 import org.dync.teameeting.bean.MeetingListEntity;
 import org.dync.teameeting.structs.ExtraType;
-import org.dync.teameeting.structs.Intent_KEY;
 import org.dync.teameeting.ui.helper.ShareHelper;
 import org.dync.teameeting.widgets.BottomMenu;
 import org.dync.teameeting.widgets.BottomMenu.OnTouchSpeedListener;
@@ -103,7 +102,7 @@ public class InvitePeopleActivity extends Activity
 				finishActivity();
 				break;
 			case R.id.tv_invite_weixin:
-				mShareHelper.shareWeiXin("Share into ... ", "", mShareUrl);
+				mShareHelper.shareWeiXin(mShareUrl);
 				finishActivity();
 				break;
 			case R.id.tv_copy_link:

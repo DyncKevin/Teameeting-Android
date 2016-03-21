@@ -225,7 +225,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         mMettingAnim = new MeetingAnim();
         mMettingAnim.setAnimEndListener(mAnimationEndListener);
 
-        mShareUrl = "http://www.teameeting.cn/share_meetingRoom/#" + mMeetingId + "Meeting";
+        mShareUrl = "http://www.teameeting.cn/share_meetingRoom/#/" + mMeetingId;
 
         mChatView.setInterface(this);
 
@@ -469,7 +469,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
                     break;
                 case R.id.ibtn_weixin:
                     mPopupWindowCustom.dismiss();
-                    mShareHelper.shareWeiXin("Share into ... ", "", mShareUrl);
+                    mShareHelper.shareWeiXin(mShareUrl);
                     break;
                 case R.id.tv_copy:
 
@@ -903,19 +903,6 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
 
 
 
-/*    @Override
-    public void OnRtcOpenLocalRender(VideoTrack localTrack) {
-        if (mDebug)
-            Log.e(TAG, "onRtcOpenLocalRender: " + localTrack);
-        mVideoView.OpenLocalRender(localTrack);
-    }*/
-
-/*    @Override
-    public void OnRtcRemoteAVStatus(String s, boolean b, boolean b1) {
-
-    }*/
-
-
     @Override
     public void onRequesageMsg(ReqSndMsgEntity requestMsg) {
         super.onRequesageMsg(requestMsg);
@@ -927,9 +914,14 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         final String name = requestMsg.getNname();
         String from = requestMsg.getFrom();
         if (mDebug) {
-            Log.e(TAG, "onRequesageMsg: " + "tags " + tags + " message " + message + " name " + name + " from " + from);
+            Log.e(TAG, "onRequesageMsg: " + "requestMsg.getRoom()" + requestMsg.getRoom() + "tags " + tags + " message " + message + " name " + name + " from " + from);
         }
-        MessageTagsDistribute(tags, message, name);
+        Log.e(TAG, mMeetingId + "onRequesageMsg: " + requestMsg.getRoom());
+
+        // MessageTagsDistribute(tags, message, name);
+        if (requestMsg.getRoom().equals(mMeetingId.trim())) {
+            MessageTagsDistribute(tags, message, name);
+        }
         //numberOfDisplay(requestMsg.getNmem());
     }
 

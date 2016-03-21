@@ -152,7 +152,7 @@ public class RoomSettingActivity extends BaseActivity implements View.OnClickLis
         }
 
         mSign = getSign();
-        mShareUrl = "http://www.teameeting.cn/share_meetingRoom/#" + mMeetingId + "Meeting";
+        mShareUrl = "http://www.teameeting.cn/share_meetingRoom/#/" + mMeetingId;
     }
 
     void initLayout() {
@@ -292,7 +292,7 @@ public class RoomSettingActivity extends BaseActivity implements View.OnClickLis
 
             case R.id.tv_invite_weixin:
                 // weixin
-                mShareHelper.shareWeiXin("Share into ... ", "", mShareUrl);
+                mShareHelper.shareWeiXin(mShareUrl);
                 finishActivity();
 
                 break;
