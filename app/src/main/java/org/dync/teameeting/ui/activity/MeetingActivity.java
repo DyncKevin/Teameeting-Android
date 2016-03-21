@@ -32,6 +32,7 @@ import org.dync.teameeting.R;
 import org.dync.teameeting.TeamMeetingApp;
 import org.dync.teameeting.bean.ChatMessage;
 import org.dync.teameeting.bean.ChatMessage.Type;
+import org.dync.teameeting.bean.MeetingListEntity;
 import org.dync.teameeting.bean.MessageListEntity;
 import org.dync.teameeting.bean.ReqSndMsgEntity;
 import org.dync.teameeting.db.CRUDChat;
@@ -114,6 +115,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
     private RelativeLayout mRlChatButton;
     private TextView tvDuoyu;
     private String mRoomName;
+    private int    mMeetingType;
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
@@ -207,14 +209,29 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         mAnyrtcViews.setVideoViewPeopleNumEvent(mVideoViewPeopleNumEvent);
         mAnyM2Mutlier = new AnyrtcMeet(TeamMeetingApp.getMainActivity(), this);
 
+
         Intent intent = getIntent();
-        mMeetingId = intent.getStringExtra("meetingId");
+/*        mMeetingId = intent.getStringExtra("meetingId");
         mUserId = intent.getStringExtra("userId");
         mNotifTags = intent.getIntExtra("tags", 0);
         mRoomName = getIntent().getStringExtra("meetingName");
-        String anyrtcId = intent.getStringExtra("anyrtcId");
+        String anyrtcId = intent.getStringExtra("anyrtcId");*/
 
+        MeetingListEntity meetingListEntity = (MeetingListEntity) intent.getSerializableExtra("meetingListEntity");
+        if(mDebug){
+            Log.e(TAG, "inintData: "+meetingListEntity.toString() );
+        }
+        mMeetingId = meetingListEntity.getMeetingid();
+        mUserId = TeamMeetingApp.getTeamMeetingApp().getDevId();
+        mNotifTags =intent.getIntExtra("tags", 0);
+        mRoomName = meetingListEntity.getMeetname();
+        String anyrtcId = meetingListEntity.getAnyrtcid();
+        mMeetingType = meetingListEntity.getMeetenable();
         mTvRoomName.setText(mRoomName);
+        if(mMeetingType==2){
+            mInviteButton.setVisibility(View.GONE);
+        }
+
         mAnyM2Mutlier.Join(anyrtcId);
         mAnyM2Mutlier.InitAnyRTCViewEvents(mAnyrtcViews);
 

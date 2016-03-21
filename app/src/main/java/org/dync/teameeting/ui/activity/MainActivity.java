@@ -356,7 +356,8 @@ public class MainActivity extends BaseActivity {
         if (mDebug)
             Log.e(TAG, "onDestroy=--- !+pushStopped" + pushStopped);
         LocalUserInfo.getInstance(this).setUserInfoBoolean(LocalUserInfo.MAIN_ACTIVE, false);
-
+        TeamMeetingApp.getmMsgSender().TMUnin();
+        System.exit(0);
     }
 
 
@@ -592,11 +593,12 @@ public class MainActivity extends BaseActivity {
         if (owner == 0) {
             mNetWork.getMeetingInfo(meetingId, JoinActType.JOIN_ENTER_ACTIVITY);
         } else {
-            statrMeetingActivity(meetingName, meetingId, anyrtcId);
+            //statrMeetingActivity(meetingName, meetingId, anyrtcId);
+            statrMeetingActivity(meetingListEntity);
         }
     }
 
-    private void statrMeetingActivity(String meetingName, String meetingId, String anyrtcId) {
+/*    private void statrMeetingActivity(String meetingName, String meetingId, String anyrtcId) {
         Intent intent = new Intent(mContext, MeetingActivity.class);
         intent.putExtra("meetingName", meetingName);
         intent.putExtra("meetingId", meetingId);
@@ -607,6 +609,22 @@ public class MainActivity extends BaseActivity {
             isNotifactionChack = false;
         }
 
+        mContext.startActivity(intent);
+    }*/
+        private void statrMeetingActivity(MeetingListEntity meetingListEntity) {
+        Intent intent = new Intent(mContext, MeetingActivity.class);
+ /*       intent.putExtra("meetingName", meetingName);
+        intent.putExtra("meetingId", meetingId);
+        intent.putExtra("userId", mUserId);
+        intent.putExtra("anyrtcId", anyrtcId);*/
+        if (isNotifactionChack) {
+            intent.putExtra("tags", mNotifTags);
+            isNotifactionChack = false;
+        }
+        Bundle bundle =new Bundle();
+        bundle.putSerializable("meetingListEntity",meetingListEntity);
+
+        intent.putExtras(bundle);
         mContext.startActivity(intent);
     }
 
@@ -692,8 +710,6 @@ public class MainActivity extends BaseActivity {
                 mSign = getSign();
                 mNetWork.signOut(mSign);
                 this.finish();
-                TeamMeetingApp.getmMsgSender().TMUnin();
-                System.exit(0);
             }
             return true;
         }
@@ -854,7 +870,8 @@ public class MainActivity extends BaseActivity {
 
                 joinType = msg.getData().getString(JoinActType.JOIN_TYPE);
                 if (joinType == JoinActType.JOIN_ENTER_ACTIVITY) {
-                    statrMeetingActivity(mUrlMeetingName, meetinId, anyrtcId);
+                    //statrMeetingActivity(mUrlMeetingName, meetinId, anyrtcId);
+                    statrMeetingActivity(meetingListEntity);
                 } else if (joinType == JoinActType.JOIN_LINK_JOIN_ACTIVITY) {
                     mNetWork.insertUserMeetingRoom(getSign(), meetinId, JoinActType.JOIN_INSERT_LINK_JOIN_ACTIVITY);
                 }
@@ -864,7 +881,8 @@ public class MainActivity extends BaseActivity {
 
                 joinType = msg.getData().getString(JoinActType.JOIN_TYPE);
                 if (joinType == JoinActType.JOIN_ENTER_ACTIVITY) {
-                    statrMeetingActivity(mUrlMeetingName, meetinId, anyrtcId);
+                   // statrMeetingActivity(mUrlMeetingName, meetinId, anyrtcId);
+                    statrMeetingActivity(meetingListEntity);
                 } else if (joinType == JoinActType.JOIN_LINK_JOIN_ACTIVITY) {
 
                     Toast.makeText(mContext, R.string.str_meeting_privated, Toast.LENGTH_SHORT).show();
@@ -1026,7 +1044,8 @@ public class MainActivity extends BaseActivity {
                 String join_insert_type = msg.getData().getString(JoinActType.JOIN_INSERT_TYPE);
                 if (join_insert_type == JoinActType.JOIN_INSERT_LINK_JOIN_ACTIVITY) {
                     String anyrtcid = TeamMeetingApp.getmSelfData().getMeetingListEntity().getAnyrtcid();
-                    statrMeetingActivity(mUrlMeetingName, mUrlMeetingId, anyrtcid);
+                    //statrMeetingActivity(mUrlMeetingName, mUrlMeetingId, anyrtcid);
+                    statrMeetingActivity(TeamMeetingApp.getmSelfData().getMeetingListEntity());
                 }
                 break;
             case MSG_INSERT_USER_MEETING_ROOM_FAILED:

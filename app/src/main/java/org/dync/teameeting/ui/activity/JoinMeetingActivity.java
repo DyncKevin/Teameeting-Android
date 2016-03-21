@@ -123,12 +123,15 @@ public class JoinMeetingActivity extends BaseActivity implements View.OnClickLis
         String userId = TeamMeetingApp.getTeamMeetingApp().getDevId();
         Intent intent = new Intent(JoinMeetingActivity.this, MeetingActivity.class);
 
-        intent.putExtra("meetingId", mMeetingId);
+/*        intent.putExtra("meetingId", mMeetingId);
         intent.putExtra("userId", userId);
         intent.putExtra("meetingName", mMeetingName);
-        intent.putExtra("anyrtcId", mAnyrtcid);
+        intent.putExtra("anyrtcid", mAnyrtcid);
 
-        Log.e(TAG, "joinMeeting: " + mAnyrtcid + "meetingName" + mMeetingName + "meetingId" + mMeetingId);
+        Log.e(TAG, "joinMeeting: " + mAnyrtcid + "meetingName" + mMeetingName + "meetingId" + mMeetingId);*/
+        Bundle bundle =new Bundle();
+        bundle.putSerializable("meetingListEntity",TeamMeetingApp.getmSelfData().getMeetingListEntity());
+        intent.putExtras(bundle);
         startActivity(intent);
         finish();
     }

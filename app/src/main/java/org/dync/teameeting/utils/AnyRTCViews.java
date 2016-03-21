@@ -140,8 +140,6 @@ public class AnyRTCViews implements View.OnTouchListener, AnyRTCViewEvents {
                 } else {
                     marginLayoutParams.leftMargin = mScreenWidth * (x + SUB_WIDTH) / 100 - width;
                     marginLayoutParams.topMargin = mScreenHeight * y / 100;
-/*                    marginLayoutParams.leftMargin = 300;
-                    marginLayoutParams.topMargin = 300;*/
                     mVoiceImageView.setVisibility(View.VISIBLE);
                     if(mDebug){
                         Log.e(TAG, "updateView: "+" marginLayoutParams.leftMargin "+marginLayoutParams.leftMargin+" marginLayoutParams.topMargin "+marginLayoutParams.topMargin );
