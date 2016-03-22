@@ -115,7 +115,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
     private RelativeLayout mRlChatButton;
     private TextView tvDuoyu;
     private String mRoomName;
-    private int    mMeetingType;
+    private int mMeetingType;
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
@@ -133,6 +133,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
     boolean mChatLayoutShow = false;
     private String mMeetingId;
     private NetWork mNetWork;
+    boolean isStartAcitvity = true;
 
     // private VideoViews mVideoView;
     private String mPublishId;
@@ -184,7 +185,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        Log.e(TAG, "onCreate: ");
         initView();
         inintData();
 
@@ -218,17 +219,17 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         String anyrtcId = intent.getStringExtra("anyrtcId");*/
 
         MeetingListEntity meetingListEntity = (MeetingListEntity) intent.getSerializableExtra("meetingListEntity");
-        if(mDebug){
-            Log.e(TAG, "inintData: "+meetingListEntity.toString() );
+        if (mDebug) {
+            Log.e(TAG, "inintData: " + meetingListEntity.toString());
         }
         mMeetingId = meetingListEntity.getMeetingid();
         mUserId = TeamMeetingApp.getTeamMeetingApp().getDevId();
-        mNotifTags =intent.getIntExtra("tags", 0);
+        mNotifTags = intent.getIntExtra("tags", 0);
         mRoomName = meetingListEntity.getMeetname();
         String anyrtcId = meetingListEntity.getAnyrtcid();
         mMeetingType = meetingListEntity.getMeetenable();
         mTvRoomName.setText(mRoomName);
-        if(mMeetingType==2){
+        if (mMeetingType == 2) {
             mInviteButton.setVisibility(View.GONE);
         }
 
@@ -415,9 +416,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
 
-        if (keyCode == KeyEvent.KEYCODE_BACK
-                && event.getAction() == KeyEvent.ACTION_DOWN
-                ) {
+        if (keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_DOWN) {
             if (TeamMeetingApp.isPad) {
                 if (mChatLayoutShow)
                     chatLayoutControl(-100);
@@ -632,6 +631,13 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
      */
     private void msgSenderLeave() {
         int code = mMsgSender.TMOptRoom(JMClientType.MCCMD_LEAVE, mMeetingId, mRoomName, "");
+        if (isStartAcitvity) {
+            //如果是通过Acitvity启动的
+            Log.e(TAG, "msgSenderLeave:isStartAcitvity " + isStartAcitvity);
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
+        }
+        Log.e(TAG, "msgSenderLeave: 启动Main");
         finish();
         if (code >= 0) {
             if (mDebug) {
@@ -792,6 +798,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
     @Override
     protected void onStart() {
         super.onStart();
+        Log.e(TAG, "onStart: ");
     }
 
     @Override
@@ -919,7 +926,6 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
     }
 
 
-
     @Override
     public void onRequesageMsg(ReqSndMsgEntity requestMsg) {
         super.onRequesageMsg(requestMsg);
@@ -969,6 +975,13 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         }
     }
 
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        isStartAcitvity = intent.getBooleanExtra("startAcitvity", true);
+        Log.e(TAG, "onNewIntent: -----" + isStartAcitvity);
+    }
 
     private void mcsendtags_talk(String message, String name) {
         ChatMessage to = new ChatMessage(Type.INPUT, message, name, System.currentTimeMillis() + "");

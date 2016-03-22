@@ -15,8 +15,6 @@ import android.provider.Settings.Secure;
 import android.widget.Toast;
 
 import com.pgyersdk.crash.PgyCrashManager;
-import com.squareup.leakcanary.LeakCanary;
-import com.squareup.leakcanary.RefWatcher;
 import com.tencent.mm.sdk.openapi.IWXAPI;
 
 import org.anyrtc.Anyrtc;
@@ -99,19 +97,19 @@ public class TeamMeetingApp extends Application {
         isPad = ScreenUtils.isPad(this);
         JPushInterface.setDebugMode(true);
         JPushInterface.init(this);
-        refWatcher = LeakCanary.install(this);
+       // refWatcher = LeakCanary.install(this);
 
         PgyCrashManager.register(this);
 
-        Anyrtc.InitAnyrtc("mzw0001", "defq34hj92mxxjhaxxgjfdqi1s332dd", "d74TcmQDMB5nWx9zfJ5al7JdEg3XwySwCkhdB9lvnd1", "org.dync.app");
+        Anyrtc.InitAnyrtc("13103994", "de095967d87cd6f9a51ec4e3ee9a0ab7", "E7FCkvPeaRBWGIxtO+mTjoJqu+TmqEDRNyi9YyFu82o", "Teameeting");
     }
 
-    public static RefWatcher getRefWatcher(Context context) {
+  /*  public static RefWatcher getRefWatcher(Context context) {
         TeamMeetingApp application = (TeamMeetingApp) context.getApplicationContext();
         return application.refWatcher;
     }
 
-    private RefWatcher refWatcher;
+    private RefWatcher refWatcher;*/
 
     public Context getContext() {
         return context;

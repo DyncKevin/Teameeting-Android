@@ -54,8 +54,8 @@ public class MyReceiver extends BroadcastReceiver {
         int notifactionId = bundle.getInt(JPushInterface.EXTRA_NOTIFICATION_ID);
         JPushInterface.clearNotificationById(TeamMeetingApp.getTeamMeetingApp(), notifactionId);
         Boolean userInfoBoolean = LocalUserInfo.getInstance(context).getUserInfoBoolean(LocalUserInfo.MAIN_ACTIVE);
-
         if (mDebug) {
+
             Log.e(TAG, "chackNotifiaction: IsAppRun" + userInfoBoolean);
             Log.e(TAG, "notifaction" + notifaction + "notifactionID" + notifactionId);
         }

@@ -206,7 +206,10 @@ public class MainActivity extends BaseActivity {
         if (isNotifactionChack) {
             int position = MeetingHelper.getMeetingIdPosition(mRoomMeetingList, mUrlMeetingId);
             mNotifTags = intent.getIntExtra("tags", 0);
-            enterMeetingActivity(position);
+            if (position > 0) {
+                enterMeetingActivity(position);
+            }
+
             return;
         }
 
@@ -254,7 +257,7 @@ public class MainActivity extends BaseActivity {
 
         addRlMainRlMain();
 
-        if (!isSetUserName) {
+        if (isSetUserName) {
             showupdateNicknameDialog();
         }
     }
@@ -293,10 +296,8 @@ public class MainActivity extends BaseActivity {
                 if (!s.equals("")) {
 
                     if (s.equals(uname)) {
-
-                        LocalUserInfo.getInstance(mContext).setUserInfoBoolean(LocalUserInfo.SET_USER_NAME, true);
+                        LocalUserInfo.getInstance(mContext).setUserInfoBoolean(LocalUserInfo.SET_USER_NAME, false);
                     } else {
-
                         mNetWork.updateNickname(getSign(), s.trim());
                         mMsgSender.TMSetNickName(s.trim());
                     }
@@ -351,7 +352,7 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
+        mNetWork.signOut(mSign);
         boolean pushStopped = JPushInterface.isPushStopped(this);
         if (mDebug)
             Log.e(TAG, "onDestroy=--- !+pushStopped" + pushStopped);
@@ -601,7 +602,10 @@ public class MainActivity extends BaseActivity {
 
     private void statrMeetingActivity(MeetingListEntity meetingListEntity) {
         Intent intent = new Intent(mContext, MeetingActivity.class);
-
+ /*       intent.putExtra("meetingName", meetingName);
+        intent.putExtra("meetingId", meetingId);
+        intent.putExtra("userId", mUserId);
+        intent.putExtra("anyrtcId", anyrtcId);*/
         if (isNotifactionChack) {
             intent.putExtra("tags", mNotifTags);
             isNotifactionChack = false;
@@ -693,8 +697,10 @@ public class MainActivity extends BaseActivity {
                 mExitTime = System.currentTimeMillis();
             } else {
                 mSign = getSign();
-                mNetWork.signOut(mSign);
-                this.finish();
+
+                 Intent home = new Intent(Intent.ACTION_MAIN);
+                 home.addCategory(Intent.CATEGORY_HOME);
+                 startActivity(home);
             }
             return true;
         }
@@ -942,7 +948,7 @@ public class MainActivity extends BaseActivity {
      * For EventBus callback.
      */
     public void onEventMainThread(Message msg) {
-
+        String meetingId;
         switch (EventType.values()[msg.what]) {
             case MSG_SIGNOUT_SUCCESS:
                 if (mDebug)
@@ -1012,14 +1018,22 @@ public class MainActivity extends BaseActivity {
             case MSG_GET_MEETING_INFO_SUCCESS:
                 if (mDebug)
                     Log.e(TAG, "MSG_GET_MEETING_INFO_SUCCESS");
-                getMeetingInfoSuccess(msg);
+                if (msg.getData().getString(JoinActType.JOIN_TYPE).equals(JoinActType.JOIN_ENTER_ACTIVITY)) {
+                    getMeetingInfoSuccess(msg);
+                }
+
                 break;
             case MSG_GET_MEETING_INFO_FAILED:
                 if (mDebug)
                     Log.e(TAG, "MSG_GET_MEETING_INFO_FAILED");
-                String meetingId = msg.getData().getString("meetingid");
-                mNetWork.deleteRoom(getSign(), meetingId);
-                Toast.makeText(mContext, R.string.meeting_delete_create, Toast.LENGTH_SHORT).show();
+
+                if (msg.getData().getString(JoinActType.JOIN_TYPE).equals(JoinActType.JOIN_LINK_JOIN_ACTIVITY)) {
+                    meetingId = msg.getData().getString("meetingid");
+                    mNetWork.deleteRoom(getSign(), meetingId);
+                    Toast.makeText(mContext, R.string.meeting_delete_create, Toast.LENGTH_SHORT).show();
+                }
+
+
                 break;
             case MSG_INSERT_USER_MEETING_ROOM_SUCCESS:
                 if (mDebug)
@@ -1036,12 +1050,13 @@ public class MainActivity extends BaseActivity {
             case MSG_INSERT_USER_MEETING_ROOM_FAILED:
                 if (mDebug)
                     Log.e(TAG, "MSG_INSERT_USER_MEETING_ROOM_FAILED");
+
                 Toast.makeText(mContext, msg.getData().getString("message"), Toast.LENGTH_SHORT).show();
                 break;
             case MSG_UP_DATE_USER_MEETING_JOIN_TIME_SUCCESS:
                 mAdapter.notifyDataSetChanged();
                 if (mDebug)
-                    Log.e(TAG, " " + mAdapter.getCount());
+                    Log.e(TAG, "MSG_UP_DATE_USER_MEETING_JOIN_TIME_SUCCESS " + mAdapter.getCount());
                 break;
             case MSG_DELETE_ROOM_SUCCESS:
                 meetingId = msg.getData().getString("meetingid");
@@ -1070,6 +1085,33 @@ public class MainActivity extends BaseActivity {
                 if (mDebug)
                     Log.e(TAG, "MSG_NOTIFICATION_MAIN");
                 msgNotificatinMain(msg);
+                break;
+            case MSG_URL_MEETING_EXIT:
+                if (mDebug)
+                    Log.e(TAG, "MSG_URL_MEETING_EXIT");
+                Intent intent = new Intent(MainActivity.this, MainActivity.class);
+                startActivity(intent);
+
+                break;
+            case MSG_URL_START_MEETING:
+                if (mDebug)
+                    Log.e(TAG, "MSG_URL_START_MEETING: ");
+                Bundle bundle = msg.getData();
+                String meetingid = bundle.getString("meetingid");
+                if (mDebug) {
+                    Log.e(TAG, "onEventMainThread:meetingid" + meetingid);
+                }
+                mRoomMeetingList = TeamMeetingApp.getmSelfData().getMeetingLists();
+                Logger.e(mRoomMeetingList.toString());
+                position = MeetingHelper.getMeetingIdPosition(mRoomMeetingList, meetingid);
+                Log.e(TAG, "onEventMainThread: position" + position);
+                if (position > -1) {
+                    enterMeetingActivity(position);
+                } else {
+                    //自己启动自己
+                    startActivity(new Intent(MainActivity.this, MainActivity.class));
+                }
+
                 break;
             default:
                 break;

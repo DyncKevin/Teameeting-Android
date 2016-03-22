@@ -123,14 +123,14 @@ public class JoinMeetingActivity extends BaseActivity implements View.OnClickLis
         String userId = TeamMeetingApp.getTeamMeetingApp().getDevId();
         Intent intent = new Intent(JoinMeetingActivity.this, MeetingActivity.class);
 
-/*        intent.putExtra("meetingId", mMeetingId);
+/*      intent.putExtra("meetingId", mMeetingId);
         intent.putExtra("userId", userId);
         intent.putExtra("meetingName", mMeetingName);
         intent.putExtra("anyrtcid", mAnyrtcid);
 
         Log.e(TAG, "joinMeeting: " + mAnyrtcid + "meetingName" + mMeetingName + "meetingId" + mMeetingId);*/
-        Bundle bundle =new Bundle();
-        bundle.putSerializable("meetingListEntity",TeamMeetingApp.getmSelfData().getMeetingListEntity());
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("meetingListEntity", TeamMeetingApp.getmSelfData().getMeetingListEntity());
         intent.putExtras(bundle);
         startActivity(intent);
         finish();
@@ -164,58 +164,55 @@ public class JoinMeetingActivity extends BaseActivity implements View.OnClickLis
 
     @Override
     public void onEventMainThread(Message msg) {
-        {
-            String join_insert_type;
-            switch (EventType.values()[msg.what]) {
+        String join_insert_type;
+        switch (EventType.values()[msg.what]) {
 
-                case MSG_GET_MEETING_INFO_SUCCESS:
-                    if (mDebug)
-                        Log.e(TAG, "MSG_GET_MEETING_INFO_SUCCESS");
-                    getMeetingInfoSuccess(msg);
-                    break;
-                case MSG_GET_MEETING_INFO_FAILED:
-                    if (mDebug)
-                        Log.e(TAG, "MSG_GET_MEETING_INFO_FAILED");
-                    join_insert_type = msg.getData().getString(JoinActType.JOIN_TYPE);
-                    if (join_insert_type == JoinActType.JOIN_START_ACTIVITY) {
-                        Toast.makeText(JoinMeetingActivity.this, R.string.meeting_delete_create, Toast.LENGTH_SHORT).show();
-                    }
+            case MSG_GET_MEETING_INFO_SUCCESS:
+                if (mDebug)
+                    Log.e(TAG, "MSG_GET_MEETING_INFO_SUCCESS");
+                getMeetingInfoSuccess(msg);
+                break;
+            case MSG_GET_MEETING_INFO_FAILED:
+                if (mDebug)
+                    Log.e(TAG, "MSG_GET_MEETING_INFO_FAILED");
+                join_insert_type = msg.getData().getString(JoinActType.JOIN_TYPE);
+                if (join_insert_type == JoinActType.JOIN_START_ACTIVITY) {
+                    Toast.makeText(JoinMeetingActivity.this, R.string.meeting_delete_create, Toast.LENGTH_SHORT).show();
+                }
 
-                    break;
-                case MSG_INSERT_USER_MEETING_ROOM_SUCCESS:
-                    if (mDebug)
-                        Log.e(TAG, "MSG_INSERT_USER_MEETING_ROOM_SUCCESS");
-                    join_insert_type = msg.getData().getString(JoinActType.JOIN_INSERT_TYPE);
-                    if (join_insert_type == JoinActType.JOIN_INSERT_START_ACTIVITY) {
-                        joinMeeting();
-                    }
-                    break;
+                break;
+            case MSG_INSERT_USER_MEETING_ROOM_SUCCESS:
+                if (mDebug)
+                    Log.e(TAG, "MSG_INSERT_USER_MEETING_ROOM_SUCCESS");
+                join_insert_type = msg.getData().getString(JoinActType.JOIN_INSERT_TYPE);
+                if (join_insert_type == JoinActType.JOIN_INSERT_START_ACTIVITY) {
+                    joinMeeting();
+                }
+                break;
 
-                case MSG_INSERT_USER_MEETING_ROOM_FAILED:
-                    if (mDebug)
-                        Log.e(TAG, "MSG_INSERT_USER_MEETING_ROOM_FAILED");
-                    join_insert_type = msg.getData().getString(JoinActType.JOIN_INSERT_TYPE);
-                    if (join_insert_type == JoinActType.JOIN_INSERT_START_ACTIVITY) {
-                        Toast.makeText(JoinMeetingActivity.this, msg.getData().getString("message"), Toast.LENGTH_SHORT).show();
-                    }
-                    break;
+            case MSG_INSERT_USER_MEETING_ROOM_FAILED:
+                if (mDebug)
+                    Log.e(TAG, "MSG_INSERT_USER_MEETING_ROOM_FAILED");
+                join_insert_type = msg.getData().getString(JoinActType.JOIN_INSERT_TYPE);
+                if (join_insert_type == JoinActType.JOIN_INSERT_START_ACTIVITY) {
+                    Toast.makeText(JoinMeetingActivity.this, msg.getData().getString("message"), Toast.LENGTH_SHORT).show();
+                }
+                break;
 
-                case MSG_NET_WORK_TYPE:
-                    if (mDebug)
-                        Log.e(TAG, "MSG_NET_WORK_TYPE");
-                    int type = msg.getData().getInt("net_type");
-                    break;
+            case MSG_NET_WORK_TYPE:
+                if (mDebug)
+                    Log.e(TAG, "MSG_NET_WORK_TYPE");
+                int type = msg.getData().getInt("net_type");
+                break;
 
-                case MSG_RESPONS_ESTR_NULl:
-                    if (mDebug)
-                        Log.e(TAG, "MSG_RESPONS_ESTR_NULl");
-                    break;
+            case MSG_RESPONS_ESTR_NULl:
+                if (mDebug)
+                    Log.e(TAG, "MSG_RESPONS_ESTR_NULl");
+                break;
 
-                default:
-                    break;
-            }
+            default:
+                break;
         }
-
 
     }
 
