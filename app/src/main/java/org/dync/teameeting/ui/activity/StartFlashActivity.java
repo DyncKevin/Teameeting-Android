@@ -18,11 +18,15 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.orhanobut.logger.Logger;
+
 import org.dync.teameeting.R;
 import org.dync.teameeting.TeamMeetingApp;
+import org.dync.teameeting.bean.MeetingListEntity;
 import org.dync.teameeting.receiver.MyReceiver;
 import org.dync.teameeting.sdkmsgclient.msgs.TMMsgSender;
 import org.dync.teameeting.structs.EventType;
+import org.dync.teameeting.structs.JoinActType;
 import org.dync.teameeting.structs.NetType;
 import org.dync.teameeting.ui.helper.DialogHelper;
 import org.dync.teameeting.utils.LocalUserInfo;
@@ -31,12 +35,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import cn.jpush.android.api.JPushInterface;
 import cn.jpush.android.api.TagAliasCallback;
 import cn.pedant.SweetAlert.SweetAlertDialog;
 import cn.pedant.SweetAlert.SweetAlertDialog.OnSweetClickListener;
+import de.greenrobot.event.EventBus;
 
 /**
  * @author zhangqilu org.dync.teammeeting.activity StartFlashActivity create at
@@ -61,6 +67,9 @@ public class StartFlashActivity extends BaseActivity {
     private ProgressBar mLoadingProgress;
     private String mUrlMeetingId = null;
     private Integer mTags = 0;
+    private String mMeetingName;
+    private String mAnyrtcid;
+
     private String mNname = "nick name";
     private final Handler mHandler = new Handler() {
         @Override
@@ -115,6 +124,40 @@ public class StartFlashActivity extends BaseActivity {
             initNetWork();
         }
     };
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Log.e(TAG, "onRestart: ");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(mDebug)
+            Log.e(TAG, "onResume: " );
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(mDebug)
+            Log.e(TAG, "onPause: " );
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if(mDebug)
+            Log.e(TAG, "onStop: " );
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(mDebug)
+            Log.e(TAG, "onDestroy: " );
+    }
 
     private final TagAliasCallback mAliasCallback = new TagAliasCallback() {
         @Override
@@ -183,6 +226,7 @@ public class StartFlashActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start_flash);
+        Log.e(TAG, "------------------------------onCreate: ");
         inintView();
         initData();
         setTag();
@@ -242,8 +286,124 @@ public class StartFlashActivity extends BaseActivity {
                 e.printStackTrace();
             }
         }
+
     }
 
+    public static boolean isNetworkAvailable(Context context) {
+        ConnectivityManager connectivity = (ConnectivityManager) context
+                .getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivity != null) {
+            NetworkInfo info = connectivity.getActiveNetworkInfo();
+            if (info != null && info.isConnected()) {
+                // 当前网络是连接的
+                if (info.getState() == NetworkInfo.State.CONNECTED) {
+                    // 当前所连接的网络可用
+                    Log.e(TAG, "isNetworkAvailable: true");
+                    return true;
+                }
+            }
+        }
+        Log.e(TAG, "isNetworkAvailable: false");
+        return false;
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        Log.e(TAG, "onNewIntent: --------------------------");
+        String action = intent.getAction();
+        Log.e(TAG, "initData: " + action);
+        boolean isNet = TeamMeetingApp.getmSelfData().ismIsNetConnected();
+        Log.e(TAG, "onNewIntent: " + isNet);
+
+        if (!isNetworkAvailable(context)) {
+            mNetErrorSweetAlertDialog.show();
+            return;
+        }
+
+
+        Message msg = new Message();
+
+        if (Intent.ACTION_VIEW.equals(action)) {
+            Uri uri = intent.getData();
+            if (uri != null) {
+                String content = uri.toString();
+                mUrlMeetingId = StringHelper.uriToMeetingId(content);
+
+                Log.e(TAG, "initData: " + uri.toString() + " content " + content + "--mUrlMeetingId" + mUrlMeetingId);
+
+                if (mUrlMeetingId != null) {
+
+                    int position = TeamMeetingApp.getmSelfData().getMeetingIdPosition(mUrlMeetingId);
+                    Log.e(TAG, "onNewIntent: " + position);
+                    if (position == -1) {
+                        //如果Meetinid不存在在当前的列表中
+                        mNetWork.getMeetingInfo(mUrlMeetingId, JoinActType.JOIN_URL_ACTVITY);
+
+                    } else {
+                        //存在当前列表中
+                        setBundle(msg);
+                        List<String> activityList = TeamMeetingApp.getActivityList();
+
+                        if (mDebug) {
+                            Log.e(TAG, "activityList Size: " + activityList.size());
+                        }
+
+                        if (activityList.size() == 1) {
+                            if (activityList.get(0).equals(mUrlMeetingId)) {
+                                Log.e(TAG, "meetingId equals" + activityList.get(0));
+                                intent.setClass(context, MeetingActivity.class);
+                                intent.putExtra("startAcitvity", true);
+                                startActivity(intent);
+                            } else {
+                                // 当前存在的 Meeting 不是我们想要启动的Meeting
+                                msg.what = EventType.MSG_NOTIFICATION_MEETING_CLOSE_MAIN.ordinal();
+                                Log.e(TAG, "----- meetingId not equals" + activityList.get(0));
+                                EventBus.getDefault().post(msg);
+                                return;
+                            }
+                        } else {
+                            //启动相应的Meeting就可以了
+                            msg.what = EventType.MSG_NOTIFICATION_MAIN.ordinal();
+                            EventBus.getDefault().post(msg);
+                            Log.e(TAG, "---- activityList === 0 ");
+                        }
+                    }
+                }
+            }
+
+        } else {
+            List<String> activityList = TeamMeetingApp.getActivityList();
+            if (activityList.size() > 0) {
+                intent.setClass(context, MeetingActivity.class);
+                intent.putExtra("startAcitvity", true);
+                startActivity(intent);
+            } else {
+                intent.setClass(context, MainActivity.class);
+                startActivity(intent);
+            }
+
+        }
+
+    }
+
+
+    /**
+     * @param msg
+     */
+    private void setBundle(Message msg) {
+        JSONObject json = new JSONObject();
+        try {
+            json.put("roomid", mUrlMeetingId);
+            json.put("tags", 0);
+            Bundle bundle = new Bundle();
+            bundle.putString(JPushInterface.EXTRA_EXTRA, json.toString());
+            Log.e(TAG, "setBundle: json.tostring" + json.toString());
+            msg.setData(bundle);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
 
     /**
      * chatMessageInint
@@ -302,7 +462,6 @@ public class StartFlashActivity extends BaseActivity {
         }
 
         startActivity(intent);
-        finish();
     }
 
     public void netWorkTypeStart(int type) {
@@ -331,40 +490,68 @@ public class StartFlashActivity extends BaseActivity {
         }).start();
     }
 
+
+    /**
+     * get meetng information success
+     *
+     * @param msg
+     */
+    private void getMeetingInfoSuccess(Message msg) {
+        MeetingListEntity meetingListEntity = TeamMeetingApp.getmSelfData().getMeetingListEntity();
+        Logger.e(meetingListEntity.toString());
+        int usable = meetingListEntity.getMeetenable();
+        mAnyrtcid = meetingListEntity.getAnyrtcid();
+        mMeetingName = meetingListEntity.getMeetname();
+        switch (usable) {
+            case 0://no
+                Toast.makeText(StartFlashActivity.this, R.string.str_meeting_deleted, Toast.LENGTH_SHORT).show();
+                break;
+            case 1://yes
+                if (msg.getData().getString(JoinActType.JOIN_TYPE) == JoinActType.JOIN_URL_ACTVITY) {
+                    mNetWork.insertUserMeetingRoom(getSign(), mUrlMeetingId, JoinActType.JOIN_INSERT_URL_ACTIVITY);
+                }
+                break;
+            case 2://private
+                Toast.makeText(StartFlashActivity.this, R.string.str_meeting_privated, Toast.LENGTH_SHORT).show();
+                break;
+        }
+    }
+
+    private void joinMeeting(Message msg) {
+
+        msg.what = EventType.MSG_URL_START_MEETING.ordinal();
+        EventBus.getDefault().post(msg);
+    }
+
+
     /**
      * For EventBus callback.
      */
     public void onEventMainThread(Message msg) {
+        String join_insert_type;
+        String meetingId;
         switch (EventType.values()[msg.what]) {
             case MSG_ININT_SUCCESS:
-
                 if (mDebug) {
                     Log.e(TAG, "MSG_ININT_SUCCESS");
                 }
-
                 mSign = TeamMeetingApp.getmSelfData().getAuthorization();
                 mNetWork.getRoomLists(mSign, 1 + "", 20 + "");
                 chatMessageInint();
-
                 break;
 
             case MSG_ININT_FAILED:
-
                 if (mDebug) {
                     Log.e(TAG, "MSG_ININT_FAILED");
                 }
-
                 break;
 
             case MSG_SIGNOUT_SUCCESS:
-
                 if (mDebug) {
                     Log.e(TAG, "MSG_SIGNOUT_SUCCESS");
                 }
-
                 finish();
                 System.exit(0);
-
                 break;
 
             case MSG_SIGNOUT_FAILED:
@@ -414,32 +601,49 @@ public class StartFlashActivity extends BaseActivity {
 
                 break;
 
-            case MSG_MESSAGE_LOGIN_SUCCESS: {
+            case MSG_GET_MEETING_INFO_SUCCESS:
                 if (mDebug) {
-                    Log.e(TAG, "MSG_MESSAGE_LOGIN_SUCCESS");
+                    Log.e(TAG, "MSG_GET_MEETING_INFO_SUCCESS ");
                 }
-
-                break;
-            }
-
-            case MSG_MESSAGE_LOGIN_FAILED:
-
-                if (mDebug) {
-                    Log.e(TAG, "MSG_MESSAGE_LOGIN_FAILED");
+                if (msg.getData().getString(JoinActType.JOIN_TYPE).equals(JoinActType.JOIN_URL_ACTVITY)) {
+                    getMeetingInfoSuccess(msg);
                 }
 
                 break;
 
-            case MSG_MESSAGE_SERVER_CONNECTED:
-
-                if (mDebug) {
-                    Log.e(TAG, "MSG_MESSAGE_SERVER_CONNECTED");
+            case MSG_INSERT_USER_MEETING_ROOM_SUCCESS:
+                if (mDebug)
+                    Log.e(TAG, "MSG_INSERT_USER_MEETING_ROOM_SUCCESS");
+                Logger.e(TeamMeetingApp.getmSelfData().getMeetingLists().toString());
+                join_insert_type = msg.getData().getString(JoinActType.JOIN_INSERT_TYPE);
+                if (join_insert_type == JoinActType.JOIN_INSERT_URL_ACTIVITY) {
+                    joinMeeting(msg);
                 }
+                break;
 
+            case MSG_INSERT_USER_MEETING_ROOM_FAILED:
+                if (mDebug)
+                    Log.e(TAG, "MSG_INSERT_USER_MEETING_ROOM_FAILED");
+                join_insert_type = msg.getData().getString(JoinActType.JOIN_INSERT_TYPE);
+                if (join_insert_type == JoinActType.JOIN_INSERT_URL_ACTIVITY) {
+                    Toast.makeText(StartFlashActivity.this, msg.getData().getString("message"), Toast.LENGTH_SHORT).show();
+                    startActivity(new Intent(StartFlashActivity.this, MainActivity.class));
+                }
+                break;
+            case MSG_GET_MEETING_INFO_FAILED:
+                if (mDebug)
+                    Log.e(TAG, "MSG_GET_MEETING_INFO_FAILED");
+
+                if (msg.getData().getString(JoinActType.JOIN_TYPE) == JoinActType.JOIN_URL_ACTVITY) {
+                    Toast.makeText(context, R.string.meeting_delete_create, Toast.LENGTH_SHORT).show();
+                    startActivity(new Intent(StartFlashActivity.this, MainActivity.class));
+                }
                 break;
 
             default:
                 break;
         }
     }
+
+
 }

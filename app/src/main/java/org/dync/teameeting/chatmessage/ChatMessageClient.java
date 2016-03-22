@@ -117,10 +117,10 @@ public class ChatMessageClient implements JMClientHelper {
         String title;
         if (reqSndMsgEntity.getTags() == JMClientType.MCSENDTAGS_TALK) {
             tags = 1;
-            title = reqSndMsgEntity.getRname() + " - " + reqSndMsgEntity.getNname() + ":" + reqSndMsgEntity.getCont();
+            title = reqSndMsgEntity.getRname() + " - " + reqSndMsgEntity.getNname() + "--------:" + reqSndMsgEntity.getCont();
         } else if (reqSndMsgEntity.getTags() == JMClientType.MCSENDTAGS_ENTER) {
             tags = 2;
-            title = reqSndMsgEntity.getNname() + context.getString(R.string.notifi_str_enter_room);
+            title = reqSndMsgEntity.getNname() +"--------"+ context.getString(R.string.notifi_str_enter_room);
             title.replace("room name", reqSndMsgEntity.getRname());
         } else {
             return;
