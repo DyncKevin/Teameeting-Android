@@ -462,7 +462,6 @@ public class StartFlashActivity extends BaseActivity {
         }
 
         startActivity(intent);
-        finish();
     }
 
     public void netWorkTypeStart(int type) {
