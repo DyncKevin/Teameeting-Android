@@ -185,7 +185,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.e(TAG, "onCreate: ");
+        Log.e(TAG, "--------------onCreate: ");
         initView();
         inintData();
 
@@ -811,7 +811,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
     @Override
     public void onResume() {
         super.onResume();
-        Log.e(TAG, "onResume: ");
+        Log.e(TAG, "-----------------------------onResume: ");
         mAnyM2Mutlier.OnResume();
 /*        if (mVideoView.LocalVideoTrack() != null) {
             mVideoView.LocalVideoTrack().setEnabled(true);

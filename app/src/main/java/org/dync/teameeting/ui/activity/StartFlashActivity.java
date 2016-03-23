@@ -23,6 +23,7 @@ import com.orhanobut.logger.Logger;
 import org.dync.teameeting.R;
 import org.dync.teameeting.TeamMeetingApp;
 import org.dync.teameeting.bean.MeetingListEntity;
+import org.dync.teameeting.http.HttpContent;
 import org.dync.teameeting.receiver.MyReceiver;
 import org.dync.teameeting.sdkmsgclient.msgs.TMMsgSender;
 import org.dync.teameeting.structs.EventType;
@@ -59,9 +60,8 @@ public class StartFlashActivity extends BaseActivity {
     private TMMsgSender mMsgSender;
     private boolean isNotifactionChack = false;
 
-    private final String mServer = "message.anyrtc.io";
-    //private final String mServer = "192.168.7.43";
-    private final int mPort = 6630;
+    private final String mServer = HttpContent.SERVICE_URL;
+    private final int mPort = HttpContent.MSG_SERVICE_POINT;
     private String mUserid;
     private String mSign;
     private ProgressBar mLoadingProgress;
@@ -318,7 +318,7 @@ public class StartFlashActivity extends BaseActivity {
 
         if (!isNetworkAvailable(context)) {
             mNetErrorSweetAlertDialog.show();
-            return;
+           // return;
         }
 
 
@@ -462,6 +462,7 @@ public class StartFlashActivity extends BaseActivity {
         }
 
         startActivity(intent);
+        finish();
     }
 
     public void netWorkTypeStart(int type) {
@@ -533,7 +534,7 @@ public class StartFlashActivity extends BaseActivity {
         switch (EventType.values()[msg.what]) {
             case MSG_ININT_SUCCESS:
                 if (mDebug) {
-                    Log.e(TAG, "MSG_ININT_SUCCESS");
+                    Log.i(TAG, "MSG_ININT_SUCCESS");
                 }
                 mSign = TeamMeetingApp.getmSelfData().getAuthorization();
                 mNetWork.getRoomLists(mSign, 1 + "", 20 + "");

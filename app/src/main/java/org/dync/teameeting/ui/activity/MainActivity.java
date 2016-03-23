@@ -206,7 +206,7 @@ public class MainActivity extends BaseActivity {
         if (isNotifactionChack) {
             int position = MeetingHelper.getMeetingIdPosition(mRoomMeetingList, mUrlMeetingId);
             mNotifTags = intent.getIntExtra("tags", 0);
-            if (position > 0) {
+            if (position > -1) {
                 enterMeetingActivity(position);
             }
 
@@ -698,9 +698,9 @@ public class MainActivity extends BaseActivity {
             } else {
                 mSign = getSign();
 
-                 Intent home = new Intent(Intent.ACTION_MAIN);
-                 home.addCategory(Intent.CATEGORY_HOME);
-                 startActivity(home);
+                Intent home = new Intent(Intent.ACTION_MAIN);
+                home.addCategory(Intent.CATEGORY_HOME);
+                startActivity(home);
             }
             return true;
         }
@@ -735,6 +735,8 @@ public class MainActivity extends BaseActivity {
                 settingReName(data);
                 break;
             case ExtraType.RESULT_CODE_ROOM_SETTING_DELETE:
+                if (mDebug)
+                    Log.e(TAG, "RESULT_CODE_ROOM_SETTING_DELETE: 关闭");
                 seetingDeleteRoom(data);
                 break;
             case ExtraType.RESULT_CODE_ROOM_SETTING_CLOSE:
@@ -773,6 +775,8 @@ public class MainActivity extends BaseActivity {
     }
 
     private void seetingDeleteRoom(Intent data) {
+        if (mDebug)
+            Log.e(TAG, "seetingDeleteRoom: ");
         mSign = getSign();
         int position = data.getIntExtra("position", 0);
         String meetingId = data.getStringExtra("meetingId");
@@ -855,7 +859,9 @@ public class MainActivity extends BaseActivity {
         String joinType;
         switch (usable) {
             case 0://no
+                //// TODO: 2016/3/22  会议已经被删除， 非房主应该删除
                 Toast.makeText(mContext, R.string.str_meeting_deleted, Toast.LENGTH_SHORT).show();
+
                 break;
             case 1:
 
@@ -875,7 +881,6 @@ public class MainActivity extends BaseActivity {
                     // statrMeetingActivity(mUrlMeetingName, meetinId, anyrtcId);
                     statrMeetingActivity(meetingListEntity);
                 } else if (joinType == JoinActType.JOIN_LINK_JOIN_ACTIVITY) {
-
                     Toast.makeText(mContext, R.string.str_meeting_privated, Toast.LENGTH_SHORT).show();
                 }
 
@@ -1027,7 +1032,8 @@ public class MainActivity extends BaseActivity {
                 if (mDebug)
                     Log.e(TAG, "MSG_GET_MEETING_INFO_FAILED");
 
-                if (msg.getData().getString(JoinActType.JOIN_TYPE).equals(JoinActType.JOIN_LINK_JOIN_ACTIVITY)) {
+                String join_type = msg.getData().getString(JoinActType.JOIN_TYPE);
+                if (join_type.equals(JoinActType.JOIN_LINK_JOIN_ACTIVITY) || join_type.equals(JoinActType.JOIN_ENTER_ACTIVITY)) {
                     meetingId = msg.getData().getString("meetingid");
                     mNetWork.deleteRoom(getSign(), meetingId);
                     Toast.makeText(mContext, R.string.meeting_delete_create, Toast.LENGTH_SHORT).show();
@@ -1059,11 +1065,16 @@ public class MainActivity extends BaseActivity {
                     Log.e(TAG, "MSG_UP_DATE_USER_MEETING_JOIN_TIME_SUCCESS " + mAdapter.getCount());
                 break;
             case MSG_DELETE_ROOM_SUCCESS:
+                if (mDebug) {
+                    Log.e(TAG, "onEventMainThread: MSG_DELETE_ROOM_SUCCESS");
+                }
                 meetingId = msg.getData().getString("meetingid");
                 int position = mAdapter.getMeetingIdPosition(meetingId);
-                mRoomMeetingList.remove(position);
-                mAdapter.notifyDataSetChanged();
-                CRUDChat.deleteByMeetingId(mContext, meetingId);
+                if (position != -1) {
+                    mRoomMeetingList.remove(position);
+                    mAdapter.notifyDataSetChanged();
+                    CRUDChat.deleteByMeetingId(mContext, meetingId);
+                }
                 break;
             case JOIN_MEETINGID_EXIST:
                 int pos = (int) msg.obj;
@@ -1113,6 +1124,14 @@ public class MainActivity extends BaseActivity {
                 }
 
                 break;
+
+            case MSG_ROOMSEETING_ENTER_ROOM:
+                if (mDebug)
+                    Log.e(TAG, "onEventMainThread: MSG_ROOMSEETING_ENTER_ROOM");
+                int posation = (int) msg.obj;
+                if (posation >= 0) {
+                    enterMeetingActivity(posation);
+                }
             default:
                 break;
         }

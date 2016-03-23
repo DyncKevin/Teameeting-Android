@@ -12,7 +12,9 @@ import com.loopj.android.http.RequestParams;
 public class HttpContent {
     public static final String NODE_URL = "http://123.59.68.21:8055/";
     //public static final String NODE_URL = "http://192.168.7.49:8055/";//123.59.68.21:8055
-
+    public static final String SERVICE_URL = "message.anyrtc.io";
+    //public static final String SERVICE_URL = "192.168.7.43";
+    public static final Integer MSG_SERVICE_POINT = 6630;
     private static AsyncHttpClient client = new AsyncHttpClient();
 
     static {
