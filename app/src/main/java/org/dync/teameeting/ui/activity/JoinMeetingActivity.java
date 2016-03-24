@@ -177,7 +177,7 @@ public class JoinMeetingActivity extends BaseActivity implements View.OnClickLis
                     Log.e(TAG, "MSG_GET_MEETING_INFO_FAILED");
                 join_insert_type = msg.getData().getString(JoinActType.JOIN_TYPE);
                 if (join_insert_type == JoinActType.JOIN_START_ACTIVITY) {
-                    Toast.makeText(JoinMeetingActivity.this, R.string.meeting_delete_create, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, R.string.meeting_delete_create, Toast.LENGTH_SHORT).show();
                 }
 
                 break;

@@ -37,13 +37,14 @@ public class TeamMeetingApp extends Application {
     private static final boolean mDebug = true;
     private static TeamMeetingApp mTeamMeetingApp;
     private static ChatMessageClient mChatMessageClient;
+    public static boolean isInitFalg=false;  // APP in the running state
 
     private static SelfData mSelfData;
     private NetWorkReceiver mNetReceiver;
     public static boolean isPad = false;
     private static TMMsgSender mMsgSender;
 
-    public static List<String> activityList = new ArrayList<String>();
+    public static List<String> mMeetingActivityList = new ArrayList<String>();
 
     public static Activity getMainActivity() {
         return mainActivity;
@@ -54,8 +55,8 @@ public class TeamMeetingApp extends Application {
     }
 
     public static Activity mainActivity ;
-    public static List<String> getActivityList() {
-        return activityList;
+    public static List<String> getMeetingActivityList() {
+        return mMeetingActivityList;
     }
 
     public static TeamMeetingApp getTeamMeetingApp() {

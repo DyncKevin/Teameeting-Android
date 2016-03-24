@@ -88,7 +88,7 @@ public class MyReceiver extends BroadcastReceiver {
             e.printStackTrace();
         }
 
-        List<String> activityList = TeamMeetingApp.getActivityList();
+        List<String> activityList = TeamMeetingApp.getMeetingActivityList();
         if (mDebug) {
             Log.e(TAG, "activityList Size: " + activityList.size());
         }

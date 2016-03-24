@@ -150,6 +150,7 @@ public class MainActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+        TeamMeetingApp.isInitFalg = true;
         mContext = this;
         setContentView(R.layout.activity_main);
         TeamMeetingApp.setMainActivity(this);
@@ -159,6 +160,36 @@ public class MainActivity extends BaseActivity {
             Log.e(TAG, "onCreate: " + TeamMeetingApp.getmSelfData().getMeetingLists().toString());
         }
         updataApp();
+    }
+
+
+    /**
+     * 再次启动
+     *
+     * @param intent
+     */
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        String urlMeetingId = intent.getStringExtra("urlMeetingId");
+        if (mDebug)
+            Log.e(TAG, "onNewIntent-----: urlMeetingId" + urlMeetingId);
+        if (urlMeetingId != null) {
+            upDataMeetingList();
+            int position = MeetingHelper.getMeetingIdPosition(mRoomMeetingList, urlMeetingId);
+            if (position >= 0) {
+                meetingPositiotrue(position);
+            } else {
+                Toast.makeText(mContext, R.string.str_join_room_wait, Toast.LENGTH_LONG);
+                mNetWork.getMeetingInfo(urlMeetingId, JoinActType.JOIN_LINK_JOIN_ACTIVITY);
+            }
+        }
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Log.e(TAG, "onRestart: ");
     }
 
     private void updataApp() {
@@ -188,6 +219,7 @@ public class MainActivity extends BaseActivity {
 
             @Override
             public void onNoUpdateAvailable() {
+
             }
         });
 
@@ -196,20 +228,30 @@ public class MainActivity extends BaseActivity {
 
     private void initdata() {
         mWarningCancel = DialogHelper.createWarningCancel(mContext);
+
         upDataMeetingList();
+
         mMsgSender = TeamMeetingApp.getmMsgSender();
         isSetUserName = LocalUserInfo.getInstance(mContext).getUserInfoBoolean(LocalUserInfo.SET_USER_NAME);
         Intent intent = getIntent();
         isNotifactionChack = intent.getBooleanExtra("isNotifactionChack", false);
         mUrlMeetingId = intent.getStringExtra("urlMeetingId");
 
+        urlMeetingIdEnterRoom(intent);
+    }
+
+    /**
+     * url enter room　判断
+     *
+     * @param intent
+     */
+    private void urlMeetingIdEnterRoom(Intent intent) {
         if (isNotifactionChack) {
             int position = MeetingHelper.getMeetingIdPosition(mRoomMeetingList, mUrlMeetingId);
             mNotifTags = intent.getIntExtra("tags", 0);
             if (position > -1) {
                 enterMeetingActivity(position);
             }
-
             return;
         }
 
@@ -220,9 +262,7 @@ public class MainActivity extends BaseActivity {
             }
             int position = TeamMeetingApp.getmSelfData().getMeetingIdPosition(mUrlMeetingId);
             if (position >= 0) {
-
                 meetingPositiotrue(position);
-
             } else {
                 Toast.makeText(mContext, R.string.str_join_room_wait, Toast.LENGTH_LONG);
                 mNetWork.getMeetingInfo(mUrlMeetingId, JoinActType.JOIN_LINK_JOIN_ACTIVITY);
@@ -352,7 +392,7 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mNetWork.signOut(mSign);
+
         boolean pushStopped = JPushInterface.isPushStopped(this);
         if (mDebug)
             Log.e(TAG, "onDestroy=--- !+pushStopped" + pushStopped);
@@ -697,10 +737,8 @@ public class MainActivity extends BaseActivity {
                 mExitTime = System.currentTimeMillis();
             } else {
                 mSign = getSign();
-
-                Intent home = new Intent(Intent.ACTION_MAIN);
-                home.addCategory(Intent.CATEGORY_HOME);
-                startActivity(home);
+                mNetWork.signOut(mSign);
+                this.finish();
             }
             return true;
         }
@@ -803,13 +841,16 @@ public class MainActivity extends BaseActivity {
         }
     }
 
+    /**
+     * init roomMeetingList
+     */
     private void upDataMeetingList() {
         List<MeetingListEntity> list = TeamMeetingApp.getmSelfData().getMeetingLists();
         for (int i = 0; i < list.size(); i++) {
             list.get(i).initUnReadMessage(mContext);
         }
         if (list != null) {
-            mRoomMeetingList.clear();
+            //mRoomMeetingList.clear();
             //mRoomMeetingList.addAll();
             mRoomMeetingList = list;
             Logger.e(list.toString() + "----" + mRoomMeetingList.toString());
@@ -1023,11 +1064,12 @@ public class MainActivity extends BaseActivity {
             case MSG_GET_MEETING_INFO_SUCCESS:
                 if (mDebug)
                     Log.e(TAG, "MSG_GET_MEETING_INFO_SUCCESS");
-                if (msg.getData().getString(JoinActType.JOIN_TYPE).equals(JoinActType.JOIN_ENTER_ACTIVITY)) {
-                    getMeetingInfoSuccess(msg);
-                }
+                if (msg.getData().getString(JoinActType.JOIN_TYPE).equals(JoinActType.JOIN_ENTER_ACTIVITY)
+                        || msg.getData().getString(JoinActType.JOIN_TYPE).equals(JoinActType.JOIN_LINK_JOIN_ACTIVITY)){
+                getMeetingInfoSuccess(msg);
+            }
 
-                break;
+            break;
             case MSG_GET_MEETING_INFO_FAILED:
                 if (mDebug)
                     Log.e(TAG, "MSG_GET_MEETING_INFO_FAILED");
@@ -1097,13 +1139,7 @@ public class MainActivity extends BaseActivity {
                     Log.e(TAG, "MSG_NOTIFICATION_MAIN");
                 msgNotificatinMain(msg);
                 break;
-            case MSG_URL_MEETING_EXIT:
-                if (mDebug)
-                    Log.e(TAG, "MSG_URL_MEETING_EXIT");
-                Intent intent = new Intent(MainActivity.this, MainActivity.class);
-                startActivity(intent);
 
-                break;
             case MSG_URL_START_MEETING:
                 if (mDebug)
                     Log.e(TAG, "MSG_URL_START_MEETING: ");

@@ -189,7 +189,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         initView();
         inintData();
 
-        List<String> activityList = TeamMeetingApp.getActivityList();
+        List<String> activityList = TeamMeetingApp.getMeetingActivityList();
         activityList.add(0, mMeetingId);
         if (mDebug)
             Log.e(TAG, "onStart:save id " + mMeetingId);
@@ -634,10 +634,10 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         if (isStartAcitvity) {
             //如果是通过Acitvity启动的
             Log.e(TAG, "msgSenderLeave:isStartAcitvity " + isStartAcitvity);
-            Intent intent = new Intent(this, MainActivity.class);
-            startActivity(intent);
+            //Intent intent = new Intent(this, MainActivity.class);
+            //startActivity(intent);
         }
-        Log.e(TAG, "msgSenderLeave: 启动Main");
+
         finish();
         if (code >= 0) {
             if (mDebug) {
@@ -831,7 +831,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         // TODO Auto-generated method stub
         if (mDebug)
             Log.e(TAG, "onDestroy: ");
-        List<String> activityList = TeamMeetingApp.getActivityList();
+        List<String> activityList = TeamMeetingApp.getMeetingActivityList();
         activityList.clear();
         //mVideoView.CloseLocalRender();
         {// Close all
@@ -1051,6 +1051,12 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
                 msgSenderLeave();
                 msg.what = EventType.MSG_NOTIFICATION_MEETING_CLOSE.ordinal();
                 EventBus.getDefault().post(msg);
+            case MSG_URL_MEETING_EXIT:
+                if (mDebug)
+                    Log.e(TAG, "MSG_URL_MEETING_EXIT");
+                msgSenderLeave();
+
+                break;
             default:
                 break;
         }
