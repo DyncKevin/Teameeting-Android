@@ -24,6 +24,8 @@ import org.dync.teameeting.widgets.BottomMenu.OnTouchSpeedListener;
 import org.dync.teameeting.widgets.SlideSwitch;
 import org.dync.teameeting.widgets.SlideSwitch.SlideListener;
 
+import de.greenrobot.event.EventBus;
+
 
 public class RoomSettingActivity extends BaseActivity implements View.OnClickListener {
     private static String TAG = "RoomSettingActivity";
@@ -328,7 +330,6 @@ public class RoomSettingActivity extends BaseActivity implements View.OnClickLis
             case R.id.tv_delete_room:
                 intent = new Intent();
                 intent.putExtra("position", mPosition);
-
                 intent.putExtra("meetingId", mMeetingId);
                 setResult(ExtraType.RESULT_CODE_ROOM_SETTING_DELETE, intent);
                 finishActivity();
@@ -342,12 +343,17 @@ public class RoomSettingActivity extends BaseActivity implements View.OnClickLis
     }
 
     private void statrMeetingActivity() {
-        Intent intent = new Intent(context, MeetingActivity.class);
+        Message msg = Message.obtain();
+        msg.obj = mPosition;
+        msg.what = EventType.MSG_ROOMSEETING_ENTER_ROOM.ordinal();
+        EventBus.getDefault().post(msg);
+
+       /* Intent intent = new Intent(context, MeetingActivity.class);
 
         Bundle bundle = new Bundle();
         bundle.putSerializable("meetingListEntity", mMeetingEntity);
         intent.putExtras(bundle);
-        startActivity(intent);
+        startActivity(intent);*/
     }
 
     private void finishActivity() {

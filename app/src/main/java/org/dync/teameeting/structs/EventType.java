@@ -90,4 +90,6 @@ public enum EventType {
 
     MSG_URL_START_MEETING,
     MSG_URL_MEETING_EXIT,
+
+    MSG_ROOMSEETING_ENTER_ROOM,
 }
