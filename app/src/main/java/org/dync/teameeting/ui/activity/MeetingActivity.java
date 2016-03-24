@@ -93,6 +93,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
     private String mShareUrl;
 
     private AnyRTCViews mAnyrtcViews;
+    private RelativeLayout mAnyrtcViewLayout;
     // Left distance of this control button relative to its parent
     int mLeftDistanceCameraBtn;
     int mLeftDistanceHangUpBtn;
@@ -206,7 +207,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         mIMM = (InputMethodManager) MeetingActivity.this.getSystemService(MainActivity.INPUT_METHOD_SERVICE);
 
 
-        mAnyrtcViews = new AnyRTCViews((RelativeLayout) findViewById(R.id.rl_videos), TeamMeetingApp.getTeamMeetingApp().getContext(), mCloseVoice, mCloseVideo);
+        mAnyrtcViews = new AnyRTCViews(mAnyrtcViewLayout, TeamMeetingApp.getTeamMeetingApp().getContext(), mCloseVoice, mCloseVideo);
         mAnyrtcViews.setVideoViewPeopleNumEvent(mVideoViewPeopleNumEvent);
         mAnyM2Mutlier = new AnyrtcMeet(TeamMeetingApp.getMainActivity(), this);
 
@@ -284,6 +285,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         mTvRoomName = (TextView) findViewById(R.id.tv_room_name);
         mTvRemind = (TextView) findViewById(R.id.tv_remind);
         mRlChatButton = (RelativeLayout) findViewById(R.id.rl_chat_bottom);
+        mAnyrtcViewLayout =(RelativeLayout) findViewById(R.id.rl_videos);
 
         mCloseVideo = (ImageView) findViewById(R.id.iv_close_video);
         mCloseVoice = (ImageView) findViewById(R.id.iv_close_voice);
@@ -389,10 +391,13 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
                         -mTopbarLayout.getHeight());
                 ViewPropertyAnimator.animate(mCloseVoice).translationY(
                         -mTopbarLayout.getHeight());
+                mAnyrtcViews.MoveVideoView(true);
+
             } else {
                 mControlLayout.show();
                 ViewPropertyAnimator.animate(mTopbarLayout).translationY(0f);
                 ViewPropertyAnimator.animate(mCloseVoice).translationY(0f);
+                mAnyrtcViews.MoveVideoView(false);
             }
         }
     }
