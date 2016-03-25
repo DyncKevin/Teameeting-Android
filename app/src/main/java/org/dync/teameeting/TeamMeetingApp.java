@@ -32,7 +32,7 @@ import cn.jpush.android.api.JPushInterface;
 public class TeamMeetingApp extends Application {
 
     private Context context;
-    public static boolean mIsDebug = true;// debug deal with
+    public static boolean mIsDebug = true;//
     private static final String TAG = "Application";
     private static final boolean mDebug = true;
     private static TeamMeetingApp mTeamMeetingApp;
