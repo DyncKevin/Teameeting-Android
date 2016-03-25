@@ -101,16 +101,18 @@ public class RoomSettingActivity extends BaseActivity implements View.OnClickLis
         @Override
         public void open() {
             mNetWork.updateRoomPushable(mSign, mMeetingId, HttpApiTpye.pushableYes, mPosition);
-            Anims.ScaleAnim(ivNotifation, 1, 0, 500);
-            // ivNotifation.setVisibility();
+
+            Anims.ScaleAnim(ivNotifation, 1, 0, 100);
+
             mNotificationsStates = true;
         }
 
         @Override
         public void close() {
             mNetWork.updateRoomPushable(mSign, mMeetingId, HttpApiTpye.pushableNO, mPosition);
+            ivNotifation.setVisibility(View.VISIBLE);
             if (mNotificationsStates)
-                Anims.ScaleAnim(ivNotifation, 0, 1, 500);
+                Anims.ScaleAnim(ivNotifation, 0, 1, 100);
             mNotificationsStates = false;
         }
     };
@@ -200,11 +202,14 @@ public class RoomSettingActivity extends BaseActivity implements View.OnClickLis
     }
 
     private void inintSwitchState() {
-
-        mNotificationsStates = (mMeetingEntity.getPushable() == 1) ? true : false;
-
+        if (mMeetingEntity.getPushable() == 0){
+            ivNotifation.setVisibility(View.VISIBLE);
+            mNotificationsStates=false;
+        }else{
+            ivNotifation.setVisibility(View.GONE);
+            mNotificationsStates=true;
+        }
         mSlideSwitch.setState(mNotificationsStates);
-
         mMeetingPrivateFlag = (mMeetingEntity.getMeetenable() == 2) ? true : false;
         mSlideSwitchPrivate.setState(mMeetingPrivateFlag);
     }
