@@ -2,14 +2,10 @@ package org.dync.teameeting.ui.activity;
 
 import android.content.Context;
 import android.content.Intent;
-
 import android.os.Bundle;
 import android.os.Message;
-
 import android.util.Log;
-
 import android.view.View;
-
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -27,6 +23,8 @@ import org.dync.teameeting.widgets.BottomMenu;
 import org.dync.teameeting.widgets.BottomMenu.OnTouchSpeedListener;
 import org.dync.teameeting.widgets.SlideSwitch;
 import org.dync.teameeting.widgets.SlideSwitch.SlideListener;
+
+import de.greenrobot.event.EventBus;
 
 
 public class RoomSettingActivity extends BaseActivity implements View.OnClickListener {
@@ -57,7 +55,6 @@ public class RoomSettingActivity extends BaseActivity implements View.OnClickLis
     private View mvRoomName;
     private View vJoninRoom;
     private View mvIniviteMessage;
-    private View vInviteWeixin;
     private View mvInviteWeiXin;
     private View mvCopyLink;
     private View mvNotifications;
@@ -103,20 +100,20 @@ public class RoomSettingActivity extends BaseActivity implements View.OnClickLis
     SlideListener slideNotificationListener = new SlideListener() {
         @Override
         public void open() {
+            mNetWork.updateRoomPushable(mSign, mMeetingId, HttpApiTpye.pushableYes, mPosition);
 
-            mNetWork.updateRoomPushable(mSign, mMeetingId,
-                    HttpApiTpye.pushableYes, mPosition);
-            Anims.ScaleAnim(ivNotifation, 1, 0, 500);
-            mNotificationsStates = true ;
+            Anims.ScaleAnim(ivNotifation, 1, 0, 100);
+
+            mNotificationsStates = true;
         }
 
         @Override
         public void close() {
-            mNetWork.updateRoomPushable(mSign, mMeetingId,
-                    HttpApiTpye.pushableNO, mPosition);
-            if(mNotificationsStates)
-                Anims.ScaleAnim(ivNotifation, 0, 1, 500);
-            mNotificationsStates = false ;
+            mNetWork.updateRoomPushable(mSign, mMeetingId, HttpApiTpye.pushableNO, mPosition);
+            ivNotifation.setVisibility(View.VISIBLE);
+            if (mNotificationsStates)
+                Anims.ScaleAnim(ivNotifation, 0, 1, 100);
+            mNotificationsStates = false;
         }
     };
 
@@ -149,8 +146,7 @@ public class RoomSettingActivity extends BaseActivity implements View.OnClickLis
         }
 
         mSign = getSign();
-        mShareUrl = "Let us see in a meeting!:" +
-                "http://115.28.70.232/share_meetingRoom/#" + mMeetingId;
+        mShareUrl = "http://www.teameeting.cn/share_meetingRoom/#/" + mMeetingId;
     }
 
     void initLayout() {
@@ -206,7 +202,13 @@ public class RoomSettingActivity extends BaseActivity implements View.OnClickLis
     }
 
     private void inintSwitchState() {
-        mNotificationsStates = (mMeetingEntity.getPushable() == 1) ? true : false;
+        if (mMeetingEntity.getPushable() == 0){
+            ivNotifation.setVisibility(View.VISIBLE);
+            mNotificationsStates=false;
+        }else{
+            ivNotifation.setVisibility(View.GONE);
+            mNotificationsStates=true;
+        }
         mSlideSwitch.setState(mNotificationsStates);
         mMeetingPrivateFlag = (mMeetingEntity.getMeetenable() == 2) ? true : false;
         mSlideSwitchPrivate.setState(mMeetingPrivateFlag);
@@ -214,7 +216,6 @@ public class RoomSettingActivity extends BaseActivity implements View.OnClickLis
 
     private void initwidgetState() {
         int visible;
-
         if (mOwner == 1) {
             visible = View.VISIBLE;
         } else {
@@ -242,10 +243,8 @@ public class RoomSettingActivity extends BaseActivity implements View.OnClickLis
 
     private void meetingPrivateUIUpdate() {
         if (mMeetingPrivateFlag) {
-            mTvIniviteMessage.setTextColor(getResources()
-                    .getColor(R.color.darkGray));
-            mTvInviteWeixin.setTextColor(getResources()
-                    .getColor(R.color.darkGray));
+            mTvIniviteMessage.setTextColor(getResources().getColor(R.color.darkGray));
+            mTvInviteWeixin.setTextColor(getResources().getColor(R.color.darkGray));
             mTvCopyLink.setTextColor(getResources().getColor(R.color.darkGray));
             mTvIniviteMessage.setClickable(false);
             mTvInviteWeixin.setClickable(false);
@@ -277,7 +276,7 @@ public class RoomSettingActivity extends BaseActivity implements View.OnClickLis
                 return;
 
             case R.id.tv_join_room:
-                statrMeetingActivity(mMeetingName, mMeetingId);
+                statrMeetingActivity();
                 finishActivity();
 
                 break;
@@ -285,12 +284,11 @@ public class RoomSettingActivity extends BaseActivity implements View.OnClickLis
             case R.id.tv_invite_message:
                 // SMS
                 mShareHelper.shareSMS(this, "", mShareUrl);
-
                 break;
 
             case R.id.tv_invite_weixin:
                 // weixin
-                mShareHelper.shareWeiXin("Share into ... ", "", mShareUrl);
+                mShareHelper.shareWeiXin(mShareUrl);
                 finishActivity();
 
                 break;
@@ -337,7 +335,6 @@ public class RoomSettingActivity extends BaseActivity implements View.OnClickLis
             case R.id.tv_delete_room:
                 intent = new Intent();
                 intent.putExtra("position", mPosition);
-
                 intent.putExtra("meetingId", mMeetingId);
                 setResult(ExtraType.RESULT_CODE_ROOM_SETTING_DELETE, intent);
                 finishActivity();
@@ -346,15 +343,22 @@ public class RoomSettingActivity extends BaseActivity implements View.OnClickLis
 
             default:
                 break;
+
         }
     }
 
-    private void statrMeetingActivity(String meetingName, String meetingId) {
-        Intent intent = new Intent(context, MeetingActivity.class);
-        intent.putExtra("meetingName", meetingName);
-        intent.putExtra("meetingId", meetingId);
-        intent.putExtra("userId", TeamMeetingApp.getTeamMeetingApp().getDevId());
-        startActivity(intent);
+    private void statrMeetingActivity() {
+        Message msg = Message.obtain();
+        msg.obj = mPosition;
+        msg.what = EventType.MSG_ROOMSEETING_ENTER_ROOM.ordinal();
+        EventBus.getDefault().post(msg);
+
+       /* Intent intent = new Intent(context, MeetingActivity.class);
+
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("meetingListEntity", mMeetingEntity);
+        intent.putExtras(bundle);
+        startActivity(intent);*/
     }
 
     private void finishActivity() {
@@ -381,5 +385,9 @@ public class RoomSettingActivity extends BaseActivity implements View.OnClickLis
 
                 break;
         }
+    }
+
+    private String buildTransaction(final String type) {
+        return (type == null) ? String.valueOf(System.currentTimeMillis()) : type + System.currentTimeMillis();
     }
 }

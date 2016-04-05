@@ -2,15 +2,11 @@ package org.dync.teameeting.bean;
 
 import android.content.Context;
 
-import com.orhanobut.logger.Logger;
-
 import org.dync.teameeting.db.CRUDChat;
 import org.dync.teameeting.db.chatdao.ChatCacheEntity;
 import org.dync.teameeting.utils.StringHelper;
 
 import java.io.Serializable;
-
-import java.util.List;
 
 
 /**
@@ -175,14 +171,17 @@ public class MeetingListEntity implements Serializable {
         this.mMeetType2 = mMeetType2;
     }
 
+    /**
+     * 初始化未读消息
+     * @param context
+     */
     public void initUnReadMessage(Context context) {
         if (!isRead(context)) {
             ChatCacheEntity chatCacheEntity = CRUDChat.selectTopChatMessage(context,
                     meetingid);
             long l = CRUDChat.selectLoadListSize(context, meetingid);
             long sendtimeOrlong = chatCacheEntity.getSendtimeOrlong();
-            setUnReadMessage(StringHelper.unReadMessageStr(l, sendtimeOrlong,
-                    context.getResources()));
+            setUnReadMessage(StringHelper.unReadMessageStr(l, sendtimeOrlong, context.getResources()));
         }
     }
 

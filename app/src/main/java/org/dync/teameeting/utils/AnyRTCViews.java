@@ -54,7 +54,7 @@ public class AnyRTCViews implements View.OnTouchListener, AnyRTCViewEvents {
         mVideoViewPeopleNumEvent = videoViewPeopleNumEvent;
     }
 
-    protected static class VideoView {
+    protected  class VideoView {
         public String strPeerId;
         public int index;
         public int x;
@@ -87,11 +87,13 @@ public class AnyRTCViews implements View.OnTouchListener, AnyRTCViewEvents {
         }
         public Boolean Hited(int px, int py) {
             if(!Fullscreen()) {
-                int left = x * Anyrtc.gScrnWidth / 100;
-                int top = y * Anyrtc.gScrnHeight / 100;
-                int right = (x + w) * Anyrtc.gScrnWidth / 100;
-                int bottom = (y + h) * Anyrtc.gScrnHeight / 100;
-                if((px >= left && px <= right) && (py >= top && px <= bottom)) {
+                int left = x * mScreenWidth / 100;
+                int top = y * mScreenHeight / 100;
+                int right = (x + w) * mScreenWidth / 100;
+                int bottom = (y + h) * mScreenHeight / 100;
+                if(mDebug)
+                Log.e(TAG, "Hited: "+"px "+px+" py "+py+" left "+left + " top "+top+" right "+right+" bottom "+bottom );
+                if((px >= left && px <= right) && (py >= top && py <= bottom)) {
                     return true;
                 }
             }
@@ -111,7 +113,7 @@ public class AnyRTCViews implements View.OnTouchListener, AnyRTCViewEvents {
 
         private void createImageView(){
             mVoiceImageView = new ImageView(mContent);
-            mVoiceImageView.setImageResource(R.drawable.mic_muted);
+            mVoiceImageView.setImageResource(R.drawable.small_mic_muted);
             mVoiceImageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
             ViewGroup.LayoutParams layoutParamsVoice = new RelativeLayout.LayoutParams(width,height);
             mVideoView.addView(mVoiceImageView,layoutParamsVoice);
@@ -140,8 +142,6 @@ public class AnyRTCViews implements View.OnTouchListener, AnyRTCViewEvents {
                 } else {
                     marginLayoutParams.leftMargin = mScreenWidth * (x + SUB_WIDTH) / 100 - width;
                     marginLayoutParams.topMargin = mScreenHeight * y / 100;
-/*                    marginLayoutParams.leftMargin = 300;
-                    marginLayoutParams.topMargin = 300;*/
                     mVoiceImageView.setVisibility(View.VISIBLE);
                     if(mDebug){
                         Log.e(TAG, "updateView: "+" marginLayoutParams.leftMargin "+marginLayoutParams.leftMargin+" marginLayoutParams.topMargin "+marginLayoutParams.topMargin );
@@ -155,7 +155,6 @@ public class AnyRTCViews implements View.OnTouchListener, AnyRTCViewEvents {
                 }else{
                     mVoiceImageView.setVisibility(View.GONE);
                 }
-
             }
 
 
@@ -197,7 +196,7 @@ public class AnyRTCViews implements View.OnTouchListener, AnyRTCViewEvents {
     public AnyRTCViews(RelativeLayout videoView, Context content, ImageView closeVoice , ImageView closeVideo) {
         AppRTCUtils.assertIsTrue(videoView != null);
         mVideoView = videoView;
-        mContent = content ;
+        mContent = content;
         mVoiceClose = closeVoice;
         mVideoClose = closeVideo;
         mScreenWidth =ScreenUtils.getScreenWidth(mContent);
@@ -206,6 +205,39 @@ public class AnyRTCViews implements View.OnTouchListener, AnyRTCViewEvents {
         mRootEglBase  = EglBase.create();
         mRemoteRenders = new HashMap<>();
         mLocalRender = new VideoView("localRender", mVideoView.getContext(), 0, 0, 0, 100, 100);
+    }
+
+    public void destoryAnyRTCViews(){
+        Log.e(TAG, "destoryAnyRTCViews: " );
+
+          // VideoView remoteRender = mRemoteRenders.get(peerId);
+           Iterator<Map.Entry<String, VideoView>> iter = mRemoteRenders.entrySet().iterator();
+            while(iter.hasNext()){
+                Map.Entry<String,VideoView> entry = iter.next();
+                VideoView remoteRender = entry.getValue();
+
+                if(remoteRender.mView != null) {
+                    remoteRender.mView.release();
+                    remoteRender.mView = null;
+                    remoteRender.mRenderer = null;
+                }
+                mVideoView.removeView(remoteRender.mLayout);
+                mVideoView.removeView(remoteRender.mVideoImageView);
+                mVideoView.removeView(remoteRender.mVoiceImageView);
+
+
+                remoteRender.mVideoImageView = null;
+                remoteRender.mVoiceImageView = null;
+                remoteRender.mLayout = null;
+            }
+
+
+            if(mVideoViewPeopleNumEvent!=null){
+                mVideoViewPeopleNumEvent =null;
+            }
+            mVoiceClose = null ;
+            mVideoClose = null ;
+            //mVideoView = null;
     }
 
     public VideoTrack LocalVideoTrack() {
@@ -413,6 +445,88 @@ public class AnyRTCViews implements View.OnTouchListener, AnyRTCViewEvents {
 
     }
 
+
+    /**
+     * MoveVideoView
+     * @param flag
+     *
+     * true   move
+     *
+     * false   initial position
+     */
+
+    public void MoveVideoView(boolean flag){
+
+        if(flag){
+            if(mScreenHeight>mScreenWidth){
+
+                SUB_Y = 80;
+
+
+                SUB_WIDTH = 20;
+                SUB_HEIGHT = 18;
+
+            }else{
+
+                SUB_Y = 65;
+                SUB_WIDTH = 20;
+                SUB_HEIGHT = 25;
+
+            }
+
+        }else{
+
+            if(mScreenHeight>mScreenWidth){
+
+                SUB_Y = 65;
+
+
+                SUB_WIDTH = 20;
+                SUB_HEIGHT = 18;
+
+            }else{
+
+                SUB_Y = 45;
+                SUB_WIDTH = 20;
+                SUB_HEIGHT = 25;
+
+            }
+
+        }
+
+        int startPosition = (100-SUB_WIDTH*mRemoteRenders.size())/2;
+        int remotePosition ;
+        int index;
+        Iterator<Map.Entry<String, VideoView>> iter = mRemoteRenders.entrySet().iterator();
+        while (iter.hasNext()) {
+            Map.Entry<String, VideoView> entry = iter.next();
+
+            VideoView render = entry.getValue();
+            if(render.Fullscreen()){
+                render = mLocalRender;
+                index = mLocalRender.index;
+            }else {
+                index = render.index;
+            }
+
+            render.y = SUB_Y;
+
+            remotePosition = startPosition+(index-1)*SUB_WIDTH;
+            //render.x = remotePosition;
+            Log.e(TAG, "updateVideoView: remotePosition "+remotePosition+" startPosition "+startPosition+
+                    " index "+index);
+
+            render.updateView();
+
+            render.mLayout.setPosition(
+                    remotePosition, render.y, SUB_WIDTH, SUB_HEIGHT);
+            render.mView.requestLayout();
+
+        }
+
+    }
+
+
     /**
      * updateMediaImage
      *
@@ -505,15 +619,17 @@ public class AnyRTCViews implements View.OnTouchListener, AnyRTCViewEvents {
         if(mScreenHeight>mScreenWidth){
 
             SUB_Y = 65;
+            SUB_WIDTH = 20;
+            SUB_HEIGHT = 18;
 
-            if(mRemoteRenders.size() == 1){
+/*            if(mRemoteRenders.size() == 1){
                 SUB_WIDTH = 24;
                 SUB_HEIGHT = 18;
             }else {
 
                 SUB_WIDTH = 20;
                 SUB_HEIGHT = 18;
-            }
+            }*/
 
         }else{
 
@@ -592,11 +708,16 @@ public class AnyRTCViews implements View.OnTouchListener, AnyRTCViewEvents {
             mVideoView.removeView(remoteRender.mVideoImageView);
             mVideoView.removeView(remoteRender.mVoiceImageView);
 
+
+            remoteRender.mVideoImageView = null;
+            remoteRender.mVoiceImageView = null;
+            remoteRender.mLayout = null;
+
             mRemoteRenders.remove(peerId);
             updateVideoView();
 
             mVideoViewPeopleNumEvent.OnPeopleNumChange(mRemoteRenders.size());
-
+            Log.e(TAG, "OnRtcRemoveRemoteRender: " );
 
         }
     }
@@ -629,8 +750,15 @@ public class AnyRTCViews implements View.OnTouchListener, AnyRTCViewEvents {
             mLocalRender.mView = null;
             mLocalRender.mRenderer = null;
 
-            mVideoView.removeView(mLocalRender.mLayout);
         }
+        mVideoView.removeView(mLocalRender.mLayout);
+        mVideoView.removeView(mLocalRender.mVideoImageView);
+        mVideoView.removeView(mLocalRender.mVoiceImageView);
+        mLocalRender.mVideoImageView = null;
+        mLocalRender.mVoiceImageView = null;
+        mLocalRender.mLayout = null;
+        mVideoView=null;
+        Log.e(TAG, "OnRtcRemoveLocalRender: ");
     }
 
     @Override

@@ -16,6 +16,7 @@ public class SelfData {
     private boolean mIsNetConnected;
 
 
+
     private List<MeetingListEntity> meetingLists = new ArrayList<MeetingListEntity>();
     private MeetingListEntity meetingListEntity;
 
@@ -52,7 +53,9 @@ public class SelfData {
         }
 
     }
-
+    public boolean ismIsNetConnected() {
+        return mIsNetConnected;
+    }
 
     public void setAuthorization(String authorization) {
         this.authorization = authorization;

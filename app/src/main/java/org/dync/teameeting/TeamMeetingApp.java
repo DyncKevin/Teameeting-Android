@@ -1,5 +1,6 @@
 package org.dync.teameeting;
 
+import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.IntentFilter;
@@ -13,8 +14,8 @@ import android.os.Environment;
 import android.provider.Settings.Secure;
 import android.widget.Toast;
 
-import com.squareup.leakcanary.LeakCanary;
-import com.squareup.leakcanary.RefWatcher;
+import com.pgyersdk.crash.PgyCrashManager;
+import com.tencent.mm.sdk.openapi.IWXAPI;
 
 import org.anyrtc.Anyrtc;
 import org.dync.teameeting.bean.SelfData;
@@ -31,21 +32,31 @@ import cn.jpush.android.api.JPushInterface;
 public class TeamMeetingApp extends Application {
 
     private Context context;
-    public static boolean mIsDebug = true;// debug deal with
+    public static boolean mIsDebug = true;//
     private static final String TAG = "Application";
     private static final boolean mDebug = true;
     private static TeamMeetingApp mTeamMeetingApp;
     private static ChatMessageClient mChatMessageClient;
+    public static boolean isInitFalg=false;  // APP in the running state
 
     private static SelfData mSelfData;
     private NetWorkReceiver mNetReceiver;
     public static boolean isPad = false;
     private static TMMsgSender mMsgSender;
 
-    public static List<String> activityList = new ArrayList<String>();
+    public static List<String> mMeetingActivityList = new ArrayList<String>();
 
-    public static List<String> getActivityList() {
-        return activityList;
+    public static Activity getMainActivity() {
+        return mainActivity;
+    }
+
+    public static void setMainActivity(Activity mainActivity) {
+        TeamMeetingApp.mainActivity = mainActivity;
+    }
+
+    public static Activity mainActivity ;
+    public static List<String> getMeetingActivityList() {
+        return mMeetingActivityList;
     }
 
     public static TeamMeetingApp getTeamMeetingApp() {
@@ -73,6 +84,8 @@ public class TeamMeetingApp extends Application {
         return mChatMessageClient;
     }
 
+    private IWXAPI api;
+
     @Override
     public void onCreate() {
         // TODO Auto-generated method stub
@@ -85,16 +98,19 @@ public class TeamMeetingApp extends Application {
         isPad = ScreenUtils.isPad(this);
         JPushInterface.setDebugMode(true);
         JPushInterface.init(this);
-        refWatcher = LeakCanary.install(this);
-        Anyrtc.InitAnyrtc("mzw0001", "defq34hj92mxxjhaxxgjfdqi1s332dd", "d74TcmQDMB5nWx9zfJ5al7JdEg3XwySwCkhdB9lvnd1", "org.dync.app");
+       // refWatcher = LeakCanary.install(this);
+
+        PgyCrashManager.register(this);
+
+        Anyrtc.InitAnyrtc("13103994", "de095967d87cd6f9a51ec4e3ee9a0ab7", "E7FCkvPeaRBWGIxtO+mTjoJqu+TmqEDRNyi9YyFu82o", "Teameeting");
     }
 
-    public static RefWatcher getRefWatcher(Context context) {
+  /*  public static RefWatcher getRefWatcher(Context context) {
         TeamMeetingApp application = (TeamMeetingApp) context.getApplicationContext();
         return application.refWatcher;
     }
 
-    private RefWatcher refWatcher;
+    private RefWatcher refWatcher;*/
 
     public Context getContext() {
         return context;

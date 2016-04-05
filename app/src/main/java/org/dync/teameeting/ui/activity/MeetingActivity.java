@@ -32,6 +32,7 @@ import org.dync.teameeting.R;
 import org.dync.teameeting.TeamMeetingApp;
 import org.dync.teameeting.bean.ChatMessage;
 import org.dync.teameeting.bean.ChatMessage.Type;
+import org.dync.teameeting.bean.MeetingListEntity;
 import org.dync.teameeting.bean.MessageListEntity;
 import org.dync.teameeting.bean.ReqSndMsgEntity;
 import org.dync.teameeting.db.CRUDChat;
@@ -92,6 +93,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
     private String mShareUrl;
 
     private AnyRTCViews mAnyrtcViews;
+    private RelativeLayout mAnyrtcViewLayout;
     // Left distance of this control button relative to its parent
     int mLeftDistanceCameraBtn;
     int mLeftDistanceHangUpBtn;
@@ -114,6 +116,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
     private RelativeLayout mRlChatButton;
     private TextView tvDuoyu;
     private String mRoomName;
+    private int mMeetingType;
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
@@ -131,6 +134,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
     boolean mChatLayoutShow = false;
     private String mMeetingId;
     private NetWork mNetWork;
+    boolean isStartAcitvity = true;
 
     // private VideoViews mVideoView;
     private String mPublishId;
@@ -182,11 +186,11 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        Log.e(TAG, "--------------onCreate: ");
         initView();
         inintData();
 
-        List<String> activityList = TeamMeetingApp.getActivityList();
+        List<String> activityList = TeamMeetingApp.getMeetingActivityList();
         activityList.add(0, mMeetingId);
         if (mDebug)
             Log.e(TAG, "onStart:save id " + mMeetingId);
@@ -198,23 +202,37 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         EventBus.getDefault().register(this);
 
-        mNetErrorSweetAlertDialog = DialogHelper.createNetErroDilaog(this, sweetClickListener);
+        mNetErrorSweetAlertDialog = DialogHelper.createNetErroDilaog(getApplicationContext(), sweetClickListener);
 
         mIMM = (InputMethodManager) MeetingActivity.this.getSystemService(MainActivity.INPUT_METHOD_SERVICE);
 
 
-        mAnyrtcViews = new AnyRTCViews((RelativeLayout) findViewById(R.id.rl_videos), TeamMeetingApp.getTeamMeetingApp().getContext(), mCloseVoice, mCloseVideo);
+        mAnyrtcViews = new AnyRTCViews(mAnyrtcViewLayout, TeamMeetingApp.getTeamMeetingApp().getContext(), mCloseVoice, mCloseVideo);
         mAnyrtcViews.setVideoViewPeopleNumEvent(mVideoViewPeopleNumEvent);
-        mAnyM2Mutlier = new AnyrtcMeet(this, this);
+        mAnyM2Mutlier = new AnyrtcMeet(TeamMeetingApp.getMainActivity(), this);
 
 
         Intent intent = getIntent();
-        mMeetingId = intent.getStringExtra("meetingId");
+/*        mMeetingId = intent.getStringExtra("meetingId");
         mUserId = intent.getStringExtra("userId");
         mNotifTags = intent.getIntExtra("tags", 0);
         mRoomName = getIntent().getStringExtra("meetingName");
-        String anyrtcId = intent.getStringExtra("anyrtcId");
+        String anyrtcId = intent.getStringExtra("anyrtcId");*/
+
+        MeetingListEntity meetingListEntity = (MeetingListEntity) intent.getSerializableExtra("meetingListEntity");
+        if (mDebug) {
+            Log.e(TAG, "inintData: " + meetingListEntity.toString());
+        }
+        mMeetingId = meetingListEntity.getMeetingid();
+        mUserId = TeamMeetingApp.getTeamMeetingApp().getDevId();
+        mNotifTags = intent.getIntExtra("tags", 0);
+        mRoomName = meetingListEntity.getMeetname();
+        String anyrtcId = meetingListEntity.getAnyrtcid();
+        mMeetingType = meetingListEntity.getMeetenable();
         mTvRoomName.setText(mRoomName);
+        if (mMeetingType == 2) {
+            mInviteButton.setVisibility(View.GONE);
+        }
 
         mAnyM2Mutlier.Join(anyrtcId);
         mAnyM2Mutlier.InitAnyRTCViewEvents(mAnyrtcViews);
@@ -226,7 +244,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         mMettingAnim = new MeetingAnim();
         mMettingAnim.setAnimEndListener(mAnimationEndListener);
 
-        mShareUrl = "Let us see in a meeting!:" + "http://115.28.70.232/share_meetingRoom/#" + mMeetingId;
+        mShareUrl = "http://www.teameeting.cn/share_meetingRoom/#/" + mMeetingId;
 
         mChatView.setInterface(this);
 
@@ -267,6 +285,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         mTvRoomName = (TextView) findViewById(R.id.tv_room_name);
         mTvRemind = (TextView) findViewById(R.id.tv_remind);
         mRlChatButton = (RelativeLayout) findViewById(R.id.rl_chat_bottom);
+        mAnyrtcViewLayout =(RelativeLayout) findViewById(R.id.rl_videos);
 
         mCloseVideo = (ImageView) findViewById(R.id.iv_close_video);
         mCloseVoice = (ImageView) findViewById(R.id.iv_close_voice);
@@ -347,6 +366,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
             mMessageShowFlag = false;
             Anims.animateRightMarginTo(mChatLayout, 0, mChatLayout.getWidth() - tvDuoyu.getWidth(), showTime, Anims.ACCELERATE);
             Anims.animateRightMarginTo(mControlLayout, 0, controllMove, showTime, Anims.ACCELERATE);
+            Anims.animateRightMarginTo(mControlLayout, 0, controllMove, showTime, Anims.ACCELERATE);
             Anims.animateRightMarginTo(mTvRemind, 0, controllMove, showTime, Anims.ACCELERATE);
             // Anims.animateRightMarginTo(mTvRoomName, 0, controllMove, showTime, Anims.ACCELERATE);
             mTvMessageCount.setVisibility(View.INVISIBLE);
@@ -371,10 +391,13 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
                         -mTopbarLayout.getHeight());
                 ViewPropertyAnimator.animate(mCloseVoice).translationY(
                         -mTopbarLayout.getHeight());
+                mAnyrtcViews.MoveVideoView(true);
+
             } else {
                 mControlLayout.show();
                 ViewPropertyAnimator.animate(mTopbarLayout).translationY(0f);
                 ViewPropertyAnimator.animate(mCloseVoice).translationY(0f);
+                mAnyrtcViews.MoveVideoView(false);
             }
         }
     }
@@ -387,7 +410,6 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         }
 
         if (mAnyrtcViews != null) {
-
             mAnyrtcViews.onScreenChanged();
         }
 
@@ -399,9 +421,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
 
-        if (keyCode == KeyEvent.KEYCODE_BACK
-                && event.getAction() == KeyEvent.ACTION_DOWN
-                ) {
+        if (keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_DOWN) {
             if (TeamMeetingApp.isPad) {
                 if (mChatLayoutShow)
                     chatLayoutControl(-100);
@@ -470,7 +490,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
                     break;
                 case R.id.ibtn_weixin:
                     mPopupWindowCustom.dismiss();
-                    mShareHelper.shareWeiXin("Share into ... ", "", mShareUrl);
+                    mShareHelper.shareWeiXin(mShareUrl);
                     break;
                 case R.id.tv_copy:
 
@@ -616,6 +636,13 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
      */
     private void msgSenderLeave() {
         int code = mMsgSender.TMOptRoom(JMClientType.MCCMD_LEAVE, mMeetingId, mRoomName, "");
+        if (isStartAcitvity) {
+            //如果是通过Acitvity启动的
+            Log.e(TAG, "msgSenderLeave:isStartAcitvity " + isStartAcitvity);
+            //Intent intent = new Intent(this, MainActivity.class);
+            //startActivity(intent);
+        }
+
         finish();
         if (code >= 0) {
             if (mDebug) {
@@ -776,6 +803,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
     @Override
     protected void onStart() {
         super.onStart();
+        Log.e(TAG, "onStart: ");
     }
 
     @Override
@@ -788,7 +816,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
     @Override
     public void onResume() {
         super.onResume();
-        Log.e(TAG, "onResume: ");
+        Log.e(TAG, "-----------------------------onResume: ");
         mAnyM2Mutlier.OnResume();
 /*        if (mVideoView.LocalVideoTrack() != null) {
             mVideoView.LocalVideoTrack().setEnabled(true);
@@ -808,7 +836,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         // TODO Auto-generated method stub
         if (mDebug)
             Log.e(TAG, "onDestroy: ");
-        List<String> activityList = TeamMeetingApp.getActivityList();
+        List<String> activityList = TeamMeetingApp.getMeetingActivityList();
         activityList.clear();
         //mVideoView.CloseLocalRender();
         {// Close all
@@ -817,9 +845,14 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
                 mAnyM2Mutlier = null;
             }
         }
+        if (mAnyrtcViews != null) {
+            mAnyrtcViews.destoryAnyRTCViews();
+            mAnyrtcViews = null;
+        }
+
 
         super.onDestroy();
-        TeamMeetingApp.getRefWatcher(TeamMeetingApp.getTeamMeetingApp().getContext()).watch(this);
+
     }
 
     /**
@@ -830,10 +863,7 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         public void onLayoutKeyChange(int b) {
 
             int screenHeight = ScreenUtils.getScreenHeight(MeetingActivity.this);
-/*            if(mDebug)
-            Log.e(TAG, "onLayoutKeyChange: "+" onLayoutKeyChange "+screenHeight);*/
 
-            // Vitual keymap
             if (screenHeight - b > 300) {
                 mChatView.setSelection(mDatas.size() - 1);
             }// Vitual key
@@ -901,20 +931,6 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
     }
 
 
-
-/*    @Override
-    public void OnRtcOpenLocalRender(VideoTrack localTrack) {
-        if (mDebug)
-            Log.e(TAG, "onRtcOpenLocalRender: " + localTrack);
-        mVideoView.OpenLocalRender(localTrack);
-    }*/
-
-/*    @Override
-    public void OnRtcRemoteAVStatus(String s, boolean b, boolean b1) {
-
-    }*/
-
-
     @Override
     public void onRequesageMsg(ReqSndMsgEntity requestMsg) {
         super.onRequesageMsg(requestMsg);
@@ -926,9 +942,14 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         final String name = requestMsg.getNname();
         String from = requestMsg.getFrom();
         if (mDebug) {
-            Log.e(TAG, "onRequesageMsg: " + "tags " + tags + " message " + message + " name " + name + " from " + from);
+            Log.e(TAG, "onRequesageMsg: " + "requestMsg.getRoom()" + requestMsg.getRoom() + "tags " + tags + " message " + message + " name " + name + " from " + from);
         }
-        MessageTagsDistribute(tags, message, name);
+        Log.e(TAG, mMeetingId + "onRequesageMsg: " + requestMsg.getRoom());
+
+        // MessageTagsDistribute(tags, message, name);
+        if (requestMsg.getRoom().equals(mMeetingId.trim())) {
+            MessageTagsDistribute(tags, message, name);
+        }
         //numberOfDisplay(requestMsg.getNmem());
     }
 
@@ -959,6 +980,13 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
         }
     }
 
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        isStartAcitvity = intent.getBooleanExtra("startAcitvity", true);
+        Log.e(TAG, "onNewIntent: -----" + isStartAcitvity);
+    }
 
     private void mcsendtags_talk(String message, String name) {
         ChatMessage to = new ChatMessage(Type.INPUT, message, name, System.currentTimeMillis() + "");
@@ -1028,6 +1056,12 @@ public class MeetingActivity extends MeetingBaseActivity implements MeetEvents, 
                 msgSenderLeave();
                 msg.what = EventType.MSG_NOTIFICATION_MEETING_CLOSE.ordinal();
                 EventBus.getDefault().post(msg);
+            case MSG_URL_MEETING_EXIT:
+                if (mDebug)
+                    Log.e(TAG, "MSG_URL_MEETING_EXIT");
+                msgSenderLeave();
+
+                break;
             default:
                 break;
         }
